@@ -69,19 +69,20 @@ scan with {:
 //TERMINALS
 
 terminal PROG, CONST, ABSTRACT, CLASS, EXTENDS, VOID, RETURN, READ, PRINT, NEW;
-terminal LBRACE, RBRACE, SEMI, COMMA, ASSIGN, LPAREN, RPAREN,LSQPAREN, RSQPAREN, DOT;
-terminal INC,DEC,MINUS,PLUS, MUL, DIV, MODUO;
-terminal AND,OR, EQUAL, NEQUAL, GRT, GRTEQ, LST,LSTEQ;
+terminal LBRACE, RBRACE, SEMI, COMMA, ASSIGN, LPAREN, RPAREN, LSQPAREN, RSQPAREN, DOT;
+terminal INC, DEC, MINUS,PLUS, MUL, DIV, MODUO;
+terminal AND, OR, EQUAL, NEQUAL, GRT, GRTEQ, LST,LSTEQ;
 terminal IF, FOR, ELSE, BREAK, CONTINUE;
 
 
 terminal Integer NUMBER;
-
-terminal Integer BOOL; /*Boolean*/
-
+terminal Boolean BOOL; /*Boolean*/
 terminal Character CHAR;
 terminal String IDENT;
+
+
 //NON TERMINALS
+
 nonterminal Program, ProgName, Extend;
 nonterminal ConstDecl, ConstList, ConstPart, ConstType;
 nonterminal VarDeclList, VarDecl;
@@ -93,26 +94,26 @@ nonterminal Assignop, Addop, Mulop, Relop;
 nonterminal StatementList, Statement, NumConstOpt, ElseOptStatement, OptDesignatorStmt, OptCondition;
 nonterminal DesignatorStatement, DesigOperation, DesignatorList, DesignatorPart;
 nonterminal Condition, ConditionList, CondTerm, CondTermList, CondFact;
-nonterminal Expr, ExprList, Term, Factor, ExprOpt;
-nonterminal ActPars, ActualParamList, ActParsOptional;
-nonterminal Designator;
-nonterminal ProgDeclList,ProgDeclPart, MinusSign;
-nonterminal VarPart, VarList, FormParamMethod,RetVal, ExprMinusPlus, Factors;
+nonterminal Expr, ExprList, Factor, ExprOpt;
+nonterminal ActPars, ActualParamList;
+nonterminal Designator, ActParsOptional;
+nonterminal ProgDeclList,ProgDeclPart, MinusSign, Term;
+nonterminal VarPart, VarList, FormParamMethod,RetVal, ExprMinusPlus;
 // PRECEDENCE
 
 
 
 
 //GRAMMAR
-Program ::= (Program) PROG ProgName ProgDeclList LBRACE MethodDeclList RBRACE 
+Program ::= (Prog) PROG ProgName ProgDeclList LBRACE MethodDeclList RBRACE 
 			;
 
-ProgName ::= (ProgName) IDENT:programName 
+ProgName ::= (ProgramName) IDENT:programName 
 			;
 
-ProgDeclList ::= (ProgDeclList) ProgDeclList ProgDeclPart
+ProgDeclList ::= (ProgDeclarationList) ProgDeclList ProgDeclPart
 				|
-				(NoProgDeclList) /*epsilon*/
+				(NoProgDeclLists) /*epsilon*/
 				;
 
 ProgDeclPart ::= (ProgDeclPartConst) ConstDecl
@@ -124,16 +125,16 @@ ProgDeclPart ::= (ProgDeclPartConst) ConstDecl
 			(ProgDeclPartClass) ClassDecl
 			;		
 			
-ConstDecl ::= (ConstDecl) CONST Type:constT ConstList SEMI
+ConstDecl ::= (ConstDeclaration) CONST Type:constT ConstList SEMI
 			;
 
 
-ConstList ::=  (ConstList) ConstList COMMA ConstPart 
+ConstList ::=  (Constants) ConstList COMMA ConstPart 
                |
              (ConstListPart)  ConstPart
               ;
 
-ConstPart ::= (ConstPart) IDENT:constName ASSIGN ConstType
+ConstPart ::= (ConstantPart) IDENT:constName ASSIGN ConstType
                 ;
 
 
@@ -143,38 +144,37 @@ ConstType ::=  (CharacterConst) CHAR:character
           |
           (BooleanConst) BOOL:bool
           ;  
-     
-VarDecl ::= (VarDecl) Type:varType VarList SEMI 
-		;
-
-VarList ::= (VarList) VarList COMMA VarPart  
-				|
-				(VarListOne) VarPart 
-				;
-			
-VarPart ::= (VarIdent) IDENT:varName
+VarList ::= (Variables) VarList COMMA VarPart
+			|
+			(VarListOne) VarPart
+			;		
+				
+VarPart ::= (VarPartIdent) IDENT:varName
 		|
-		(VarArray) IDENT:varName LSQPAREN RSQPAREN 
+		(VarPartArray) IDENT:arrName LSQPAREN RSQPAREN 
 		;
 
-VarDeclList ::= (VarDeclList) VarDeclList VarDecl
+VarDeclList ::= (VariablesList) VarDeclList VarDecl
 			|
 			(NoVarDeclList) /*epsilon*/
 			;
+			
+VarDecl ::= (VarDeclaration) Type:varType VarList SEMI 
+		;
 
-ClassDecl ::=(ClassDecl) CLASS ClassName Extend LBRACE VarDeclList MethodDeclListOptional RBRACE 
+ClassDecl ::=(ClassDeclaration) CLASS ClassName Extend LBRACE VarDeclList MethodDeclListOptional RBRACE 
 		   ;
 
 
-ClassName ::=(ClassName) IDENT:className				
+ClassName ::=(ClsName) IDENT:className				
 			;
 				
-Extend ::= (Extend) EXTENDS IDENT:baseClass
+Extend ::= (Extends) EXTENDS IDENT:baseClass
 		|
 		(NoExtend) /*epsilon*/
 		;
 
-MethodDeclListOptional ::= (MethodDeclListOptional) LBRACE MethodDeclList RBRACE
+MethodDeclListOptional ::= (ClassMethodDecl) LBRACE MethodDeclList RBRACE
 						|
 						(NoMethodDeclListOptional) /*epsilon*/
 						;
@@ -185,19 +185,19 @@ MethodDeclList ::= (MethodDeclarations) MethodDeclList MethodDecl
 					;
 					
 					
-AbstractClassDecl ::= (AbstractClassDecl) ABSTRACT CLASS AbsClassName Extend LBRACE VarDeclList AbstractClassMethods RBRACE
+AbstractClassDecl ::= (AbstractClassDeclaration) ABSTRACT CLASS AbsClassName Extend LBRACE VarDeclList AbstractClassMethods RBRACE
 					;
 					
-AbsClassName ::= (AbsClassName) IDENT:aclassName 
+AbsClassName ::= (AbstractClassName) IDENT:aclassName 
 			;
 									
-AbstractClassMethods ::= (AbstractClassMethods) LBRACE AbstractMethodList RBRACE
+AbstractClassMethods ::= (AbsClassMethodDecl) LBRACE AbstractMethodList RBRACE
 						  |
 						  (NoAbstractClassMethods) /*epsilon*/
 						  ;
 
 
-AbstractMethodList ::= (AbstractMethodList) AbstractMethodList AbsRegularMethod
+AbstractMethodList ::= (AbstractMethodDeclList) AbstractMethodList AbsRegularMethod
 					| 
 					(NoAbstractMethodList) /*epsilon*/
 					;
@@ -208,44 +208,44 @@ AbsRegularMethod ::= (RegularMethod) MethodDecl
 					;
 
 
-MethodDecl ::= (MethodDecl) MethodTypeName LPAREN FormParamMethod RPAREN VarDeclList LBRACE StatementList RBRACE 
+MethodDecl ::= (MethodDeclaration) MethodTypeName LPAREN FormParamMethod RPAREN VarDeclList LBRACE StatementList RBRACE 
 			   ;
 
-AbstractMethodDecl ::= (AbstractMethodDecl) ABSTRACT MethodTypeName LPAREN FormParamMethod RPAREN SEMI
+AbstractMethodDecl ::= (AbstrMethodDecl) ABSTRACT MethodTypeName LPAREN FormParamMethod RPAREN SEMI
 					;
 
-MethodTypeName ::= (MethodTypeName) Type:retType IDENT:methName
+MethodTypeName ::= (ReturnValMethodTypeName) Type:retType IDENT:methName
 				|
 				(VoidMethodTypeName) VOID:retTypr IDENT:methName
 				;
 
-FormParamMethod ::= (FormParamMethod) FormalParamList
+FormParamMethod ::= (FormalParamMethods) FormalParamList
 				|
 				(NoFormParamMethod) /*epsilon*/
 				;
 
-FormalParamList ::= (FormalParamDecls) FormalParamList COMMA FormPars
+FormalParamList ::= (FormalParameterList) FormalParamList COMMA FormPars
 					|
 					(SingleFormalParamDecl) FormPars
 					;
 
 					
-FormPars ::= (FormParams)  Type:fparType IDENT:fparName
+FormPars ::= (FormalParams)  Type:fparType IDENT:fparName
 				| 
 				(FormalParamDeclSqParent) Type:fparType IDENT:fparName LSQPAREN RSQPAREN
 				;
 
 				  
-Type ::= (Type) IDENT:typeName 
+Type ::= (TypeName) IDENT:typeName 
 		;
 
 StatementList ::= (Statements) StatementList Statement 
 				|
-				 (NoStmt) /* epsilon */
+				(NoStmt) /* epsilon */
 				 ;
 				 
 Statement ::= (DesignatorStatementStatement) DesignatorStatement SEMI
-			|
+  			|
 			(IfStatement) IF LPAREN Condition RPAREN ElseOptStatement
 			|
 			(ForStatement) FOR LPAREN OptDesignatorStmt SEMI OptCondition SEMI OptDesignatorStmt RPAREN Statement
@@ -263,12 +263,12 @@ Statement ::= (DesignatorStatementStatement) DesignatorStatement SEMI
 			(StatmentBrace)LBRACE StatementList RBRACE
 			;
 			
-RetVal ::= (RetVal) Expr:retVal
+RetVal ::= (RetValue) Expr:retVal
 		|
 		(NoRetVal)/*epsilon*/
 		;		
 			
-NumConstOpt ::= (NumConstOpt) COMMA NUMBER
+NumConstOpt ::= (PrintNumConstOpt) COMMA NUMBER
 				  |
 				  (NoNumConstOpt) /*epsilon*/
 				  ;
@@ -278,17 +278,17 @@ ElseOptStatement ::= (ElseStatement) ELSE Statement
 					(NoElseStatement) /*epsilon*/
 					;
 					
-OptDesignatorStmt ::= (OptDesignatorStmt) DesignatorStatement
+OptDesignatorStmt ::= (OptionalDesignatorStmt) DesignatorStatement
 					| 
 					(NoDesignatorStmt) /*epsilon*/ 
 					;
 					
-OptCondition ::= (OptCondition) Condition
+OptCondition ::= (OptionalCondition) Condition
 					|
 					(NoCondition) /*epsilon*/
 					;
 
-DesignatorStatement ::= (DesignatorStatment) Designator:d DesigOperation ;
+DesignatorStatement ::= (DesignStatment) Designator DesigOperation ;
 
 
 DesigOperation ::= (DesigOperationAss) Assignop Expr
@@ -301,25 +301,25 @@ DesigOperation ::= (DesigOperationAss) Assignop Expr
 					;
 
 
-ActParsOptional ::= (ActParsOptional) ActPars
+ActParsOptional ::= (ActualParsOptional) ActPars
 				|
 				(NoActParsOptional) /*epsilon*/
 				;
 				
-Condition ::= (Condition) ConditionList
+Condition ::= (Conditions) ConditionList
 			;
 
-ConditionList ::= (ConditionList) ConditionList OR CondTerm
+ConditionList ::= (ConditionsLisOR) ConditionList OR CondTerm
 				|
 				(SingleCondList) CondTerm
 				;
 
-CondTerm ::= (CondTerm) CondTermList 
+CondTerm ::= (ConditionTerm) CondTermList 
 			;
 
-CondTermList ::= (CondTermList) CondTermList AND CondFact
+CondTermList ::= (ConditionTermList) CondTermList AND CondFact
 			 | 
-			 (CondTermListOne) CondFact /*epsilon*/
+			 (ConditionTermListOne) CondFact /*epsilon*/
 			 ;
 
 CondFact ::= (CondFactExpr) Expr
@@ -329,26 +329,26 @@ CondFact ::= (CondFactExpr) Expr
 
 	  
 
-Expr ::= (Expr)  ExprMinusPlus ExprList
+Expr ::= (Expresion)  ExprMinusPlus ExprList
 		;
 
-ExprMinusPlus ::= (ExprMinus) MinusSign Term
+ExprMinusPlus ::= (ExprMinus) MINUS Term
 			|
 			(ExprPlus) Term
 			;
 			
-MinusSign ::= (MinusSign) MINUS ;
+MinusSign ::= (Minus) MINUS ;
 
 ExprList ::= (AddopExpr) ExprList Addop Term
 			|
              (NoAddopExpr) /*epsilon*/
                ; 
 
-Term ::= (MulopTerm) Term Mulop Factors
+Term ::= (MulopTerm) Term Mulop Factor
 		|
-		 (FactorTerm) Factors
+		 (FactorTerm) Factor
 		;
-Factors::= (Factors) Factor;  
+
 
 Factor ::= (DesignatorFactor) Designator:desig
 			|
@@ -365,7 +365,7 @@ Factor ::= (DesignatorFactor) Designator:desig
 		   (NewTypeFactor) NEW Type ExprOpt
 		   ;
 		
-ExprOpt ::= (ExprOpt) LSQPAREN Expr RSQPAREN
+ExprOpt ::= (ExpresOpt) LSQPAREN Expr RSQPAREN
 			|
 			(NoExprOpt) /*epsilon*/
 			;
@@ -374,18 +374,18 @@ ExprOpt ::= (ExprOpt) LSQPAREN Expr RSQPAREN
 ActPars ::= (Actuals) ActualParamList 
 		;
 			   
-ActualParamList ::= (ActualParamList) ActualParamList COMMA Expr
+ActualParamList ::= (ActualParametersList) ActualParamList COMMA Expr
 					|
 					(ActualParamExpr) Expr
 					;
 					
 					
-Designator ::= (Designator) IDENT:name DesignatorList
+Designator ::= (Design) IDENT:name DesignatorList
 			;
 
 
 
-DesignatorList ::= (DesignatorList) DesignatorList DesignatorPart
+DesignatorList ::= (DesignList) DesignatorList DesignatorPart
                    |
                   (NoDesignList)
                    ;  
@@ -397,7 +397,7 @@ DesignatorPart ::= (DotDesignPart) DOT IDENT:name
                   (ArrayDesignPart)  LSQPAREN Expr RSQPAREN
                   ;
 
-Assignop ::= (Assignop) ASSIGN
+Assignop ::= (Assignoper) ASSIGN
 		;
 
 Relop ::= (Equal) EQUAL
@@ -413,18 +413,18 @@ Relop ::= (Equal) EQUAL
        (Lesse)  LSTEQ
          ; 
          
-Addop ::= (Addop) PLUS 
+Addop ::= (Addoper) PLUS 
 		| 
-		(Subop) MINUS
+		(Suboper) MINUS
 		;
 	
 	
 		
-Mulop ::= (Mulop) MUL
+Mulop ::= (Muloper) MUL
 		|
-		(Divop) DIV
+		(Divoper) DIV
 		|
-		(Modop) MODUO
+		(Modoper) MODUO
 		;
 
 
