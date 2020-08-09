@@ -19,6 +19,7 @@
 		<fileset dir="spec">
 				<exclude name="mjlexer.lex"/>
 				<exclude name="mjparser.cup"/>
+			<exclude name="mjparser2.cup"/>
 			</fileset>
 		</delete>
 	
