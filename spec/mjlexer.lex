@@ -64,6 +64,14 @@ import java_cup.runtime.Symbol;
 "++" 		{ return new_symbol(sym.INC, 		yytext()); }
 "--" 		{ return new_symbol(sym.DEC, 		yytext()); }
 
+//dopune zahteva
+"+=" 		{ return new_symbol(sym.ADDASSIGN, 		yytext()); }
+"-=" 		{ return new_symbol(sym.SUBASSIGN, 		yytext()); }
+
+"*=" 		{ return new_symbol(sym.MULASSIGN, 		yytext()); }
+"/=" 		{ return new_symbol(sym.DIVASSIGN, 		yytext()); }
+"%=" 		{ return new_symbol(sym.MODUOASSIGN, 	yytext()); }
+
 //logic
 "||" 		{ return new_symbol(sym.OR, 		yytext()); }
 "&&" 		{ return new_symbol(sym.AND, 		yytext()); }

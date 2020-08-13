@@ -1,24 +1,13 @@
 // generated with ast extension for cup
 // version 0.8
-// 9/7/2020 17:19:55
+// 13/7/2020 12:46:51
 
 
 package rs.ac.bg.etf.pp1.ast;
 
-public class TypeName extends Type {
+public class SubAssigment extends AddopRight {
 
-    private String t;
-
-    public TypeName (String t) {
-        this.t=t;
-    }
-
-    public String getT() {
-        return t;
-    }
-
-    public void setT(String t) {
-        this.t=t;
+    public SubAssigment () {
     }
 
     public void accept(Visitor visitor) {
@@ -39,13 +28,10 @@ public class TypeName extends Type {
     public String toString(String tab) {
         StringBuffer buffer=new StringBuffer();
         buffer.append(tab);
-        buffer.append("TypeName(\n");
-
-        buffer.append(" "+tab+t);
-        buffer.append("\n");
+        buffer.append("SubAssigment(\n");
 
         buffer.append(tab);
-        buffer.append(") [TypeName]");
+        buffer.append(") [SubAssigment]");
         return buffer.toString();
     }
 }

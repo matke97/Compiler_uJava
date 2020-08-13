@@ -1,24 +1,13 @@
 // generated with ast extension for cup
 // version 0.8
-// 9/7/2020 17:19:55
+// 13/7/2020 12:46:51
 
 
 package rs.ac.bg.etf.pp1.ast;
 
-public class ProgramName extends ProgName {
+public class DivAssigment extends MulopRight {
 
-    private String programName;
-
-    public ProgramName (String programName) {
-        this.programName=programName;
-    }
-
-    public String getProgramName() {
-        return programName;
-    }
-
-    public void setProgramName(String programName) {
-        this.programName=programName;
+    public DivAssigment () {
     }
 
     public void accept(Visitor visitor) {
@@ -39,13 +28,10 @@ public class ProgramName extends ProgName {
     public String toString(String tab) {
         StringBuffer buffer=new StringBuffer();
         buffer.append(tab);
-        buffer.append("ProgramName(\n");
-
-        buffer.append(" "+tab+programName);
-        buffer.append("\n");
+        buffer.append("DivAssigment(\n");
 
         buffer.append(tab);
-        buffer.append(") [ProgramName]");
+        buffer.append(") [DivAssigment]");
         return buffer.toString();
     }
 }

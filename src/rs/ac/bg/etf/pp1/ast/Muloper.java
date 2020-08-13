@@ -1,11 +1,11 @@
 // generated with ast extension for cup
 // version 0.8
-// 9/7/2020 17:19:55
+// 13/7/2020 12:46:51
 
 
 package rs.ac.bg.etf.pp1.ast;
 
-public class Muloper extends Mulop {
+public class Muloper extends MulopLeft {
 
     public Muloper () {
     }
