@@ -117,6 +117,9 @@ nonterminal MulopLeft MulopLeft;
 //za semantickuanal!
 nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgName, Program, MethodDecl, MethodTypeName, Designator, ClassName;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, Term, Factor, Expr;
+
+//precedence
+precedence left ELSE;
 //GRAMMAR
 
 Program ::= (Program) PROG ProgName:p ProgDeclList:P1 LBRACE MethodDeclList:M2 RBRACE {: RESULT=new Program(p, P1, M2); RESULT.setLine(pleft); :} 
@@ -346,9 +349,9 @@ ExprList ::= (AddopExpr) ExprList:E1 Addop:A2 Term:T3 {: RESULT=new AddopExpr(E1
              (NoAddopExpr) {: RESULT=new NoAddopExpr(); :} /* epsilon */
                ; 
 
-Term ::= (MulopTerm) Term:T1 Mulop:M2 Factor:F3 {: RESULT=new MulopTerm(T1, M2, F3); RESULT.setLine(T1left); :}
+Term ::= (MulopTerm) Term:T1 Mulop:M2 Factor:fact {: RESULT=new MulopTerm(T1, M2, fact); RESULT.setLine(T1left); :}
 		|
-		 (FactorTerm) Factor:F1 {: RESULT=new FactorTerm(F1); RESULT.setLine(F1left); :}
+		 (FactorTerm) Factor:fact {: RESULT=new FactorTerm(fact); RESULT.setLine(factleft); :}
 		;	
 		
 		

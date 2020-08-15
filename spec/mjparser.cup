@@ -126,6 +126,9 @@ VarList ::= (VaribleList) VarList COMMA VarPart:part
 		;   
 		
 VarPart ::= (VariablePart) IDENT:varName
+		|      
+        (ERROR1) error:l
+        {: parser.report_error("Izvrsen oporavak od grekse pri deklarisanju promenljive u liniji "+lleft ,null);  :}
 		|
 		(VariablePartArr) IDENT:varName LSQPAREN RSQPAREN
 		;
@@ -213,6 +216,9 @@ FormParsPart ::= (FormalParsPart) Type:fparType IDENT:fparName
 				;
 
 Statement ::= (DesignatorStatementStatement) DesignatorStatement SEMI
+			|
+            (ERROR2) error SEMI:l
+            {: parser.report_error("Izvrsen oporavak od greske pri dodeli vrednosti do ; u liniji " +lleft,null);  :}
 			|
 			(IfStatement) IF LPAREN Condition RPAREN ElseOptStatement
 			|
@@ -305,9 +311,9 @@ ExprList ::= (AddopExpr) ExprList Addop Term
              (NoAddopExpr) /* epsilon */
                ; 
 
-Term ::= (MulopTerm) Term Mulop Factor
+Term ::= (MulopTerm) Term Mulop Factor:fact
 		|
-		 (FactorTerm) Factor
+		 (FactorTerm) Factor:fact
 		;	
 		
 		

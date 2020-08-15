@@ -13,22 +13,28 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	int varDeclCount 		= 0;
 	Obj currentMethod 		= null;
 	Obj currentClass 		= null;
+	Obj currentDesigObj     = null;
+	
 	Struct currentType 		= null;
 	boolean returnFound 	= false;
 	boolean errorDetected 	= false;
+	boolean mainDeclared 	= false;
 	int nVars;
 	
-	int numClass=0,numMethod=0, numGlobalVar=0,numConst=0,numGlobalArray=0;
-	int numLocalArrayMain=0,numLocalVarMain=0,numStatementMain=0, numFunctionCallMain=0;
+	int numClass = 0, 	numMethod = 0, 	numGlobalVar = 0 ,	numConst = 0, 	numGlobalArray = 0;
+	int numLocalArrayMain = 0,	numLocalVarMain = 0,	numStatementMain = 0, 	numFunctionCallMain = 0;
 
 	int currLevel = 0;
 	
 	
 	int constValue;
+	Struct currExprType 	= null;
+    Struct methRetType 		= null;
+	Struct returnType 		= null; //tip koji vraca return izraz unutar metode!
+	Struct factorType 		= null;
+	Obj currentConst 		= null;
 	
-	
-	Obj currentConst =null;
-	Logger log = Logger.getLogger(getClass());
+	Logger log 				= Logger.getLogger(getClass());
 	/**
 	 * 
 	 * @param message - text message to show
@@ -162,15 +168,16 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     	}
     }
     //MOZDA I NE MORA
-    boolean methRetType = false;
+
     public void visit(VoidRetType voidRet)
     {
-    	methRetType = false;
+    	methRetType = Tab.noType;
     }
     public void visit(TypeRetType typeRet)
     {
-    	methRetType = true;
+    	methRetType = currentType;
     }
+    
     public void visit(MethodTypeName methodTypeName)
     {
     	if(Tab.find(methodTypeName.getMethodName()) != Tab.noObj)
@@ -182,8 +189,9 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     	if(methodTypeName.getMethodName() == "main")
     	{
     		//main metoda
+    		mainDeclared = true;
     	}
-    	currentMethod = Tab.insert(Obj.Meth, methodTypeName.getMethodName(), currentType);
+    	currentMethod = Tab.insert(Obj.Meth, methodTypeName.getMethodName(), methRetType);
     	methodTypeName.obj = currentMethod;
     	
     	Tab.openScope();
@@ -193,15 +201,43 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     
     public void visit(MethodDecl methDecl)
     {
-    	if(!returnFound && currentMethod.getType() != Tab.noType){
+    	//greska u drugom delu moras da ispravis return
+    	if((!returnFound && currentMethod.getType() != Tab.noType) || (returnFound && currentMethod.getType() != returnType)){
 			report_error("Semanticka greska na liniji " + methDecl.getLine() + ": funkcija " + currentMethod.getName() + " nema return iskaz!", null);
     	}
     	Tab.chainLocalSymbols(currentMethod);
     	Tab.closeScope();
     	
+    	returnFound = false;
     	currentMethod = null;
     }
+    
+    public void visit(ReturnStatement rtstm)
+    {
+    	if(currentMethod == null)
+    	{
+    		report_error("Greska na liniji:" + rtstm.getLine() + ", return izraz mora biti unutar metode", null);
+    		return;
+    	}
+    	returnFound = true;
+    }
   
+    public void visit(RetValue rv)
+    {
+    	if(currentMethod != null)
+    	{
+    		Struct currMethType = currentMethod.getType();
+    		if(currMethType.compatibleWith(rv.getExpr().struct))
+    		{
+    			report_error("Greska na liniji " + rv.getLine() + " : " + "tip izraza u return naredbi ne slaze se sa tipom povratne vrednosti funkcije " + currentMethod.getName(), null);
+    		}
+    	}
+    }
+    
+    public void visit(NoRetVal nrv)
+    {
+    	returnType = Tab.noType;
+    }
     public void visit(ConstPart constPart)
     {
     	if(Tab.currentScope.findSymbol(constPart.getConstName()) != null)
@@ -256,15 +292,100 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     	
     }
     
+    public void visit(Designator desig)
+    {
+    	currentDesigObj = Tab.find(desig.getName());
+    	if(currentDesigObj == Tab.noObj)
+    	{
+    		report_error("Greska na liniji:"+ desig.getLine() +". Nije definisan simbol"+ desig.getName(), null);
+    	}else
+    	{
+    		desig.obj = currentDesigObj;
+    	}
+    	
+    }
     
+    public void visit(ArrayDesignPart adp)
+    {
+    	if(currentDesigObj.getType().getKind() == Struct.Class)
+    	{
+    		report_error("Greska na liniji: " + adp.getLine() + ": Podrzani su samo ugradjeni tipovi podataka.", null);
+    	}
+    }
+    
+    public void visit(DesignatorFactor desigfac)
+    {
+    	
+    }
+    public void visit(FactorTerm facTerm)
+    {
+    	facTerm.struct = facTerm.getFactor().struct;
+    	//factorType  = 
+    }
+    
+    public void visit(MulopTerm mulopTerm)
+    {
+    	mulopTerm.struct = mulopTerm.getFactor().struct;
+    }
+    
+    
+    public void visit(DesigOperationAss dop)
+    {
+    	
+    	if(!dop.getExpr().struct.assignableTo(currentDesigObj.getType()))
+    	{
+    		report_error("Greska na liniji " + dop.getLine() + " : " + "nekompatibilni tipovi u dodeli vrednosti! ", null);
+    	}
+    }
+    
+    
+    public void visit(NumFactor nf)
+    {
+    	nf.struct = Tab.intType;
+    	factorType = Tab.intType;
+    }
+    
+    public void visit(CharFactor cf)
+    {
+    	cf.struct = Tab.charType;
+    	factorType = Tab.charType;
+    }
+    
+    public void visit(BoolFactor bf)
+    {
+    	bf.struct = Tab.intType;
+    	factorType = Tab.charType;
+    }
+    
+    public void visit(FuncCallFactor fcf)
+    {
+    	Obj func = fcf.getDesignator().obj;
+    	if(Obj.Meth == func.getKind())
+    	{
+			report_info("Pronadjen poziv funkcije " + func.getName() + " na liniji " + fcf.getLine(), null);
+			fcf.struct = func.getType();
+    	}
+    	else
+    	{
+			report_error("Greska na liniji " + fcf.getLine()+" : ime " + func.getName() + " nije funkcija!", null);
+			fcf.struct = Tab.noType;
+    	}
+    }
+    
+    
+    public void visit(AddopExpr addExpr)
+    {
+    	//Struct t = addExpr.getTerm().struct;
+    	//Struct te = addExpr.getExprList()
+    }
     public boolean passed()
     {
     	return !errorDetected;
     }
     
+ 
     
-    
-   /* NE RTRBEA ZA A
+   /* NE TRBEA ZA A
     * public void visit(ClassName className)
    
     {
