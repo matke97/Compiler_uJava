@@ -7,7 +7,8 @@ import rs.ac.bg.etf.pp1.ast.*;
 parser code {:
 
 	Logger log = Logger.getLogger(getClass());
-   
+      
+   boolean errorDetected;
    
     // slede redefinisani metodi za prijavu gresaka radi izmene teksta poruke
      
@@ -25,6 +26,7 @@ parser code {:
     }
 
     public void report_error(String message, Object info) {
+    	errorDetected = true;
     	StringBuilder msg = new StringBuilder(message); 
     	if (info instanceof Symbol)
             msg.append (" na liniji ").append(((Symbol)info).left);
@@ -270,7 +272,7 @@ DesigOperation ::= (DesigOperationAss) Assignop Expr
 					|
 					(DesigOperationDec) DEC
 					|
-					(DesigOperationActPar) LPAREN ActParsOptional RPAREN
+					(DesigOperationActPar) LPAREN RPAREN
 					;
 ActParsOptional ::= (ActualParsOptional) ActPars
 				|

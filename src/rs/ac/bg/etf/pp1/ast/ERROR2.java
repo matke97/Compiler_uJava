@@ -5,9 +5,9 @@
 
 package rs.ac.bg.etf.pp1.ast;
 
-public class DesigOperationActPar extends DesigOperation {
+public class ERROR2 extends Statement {
 
-    public DesigOperationActPar () {
+    public ERROR2 () {
     }
 
     public void accept(Visitor visitor) {
@@ -28,10 +28,10 @@ public class DesigOperationActPar extends DesigOperation {
     public String toString(String tab) {
         StringBuffer buffer=new StringBuffer();
         buffer.append(tab);
-        buffer.append("DesigOperationActPar(\n");
+        buffer.append("ERROR2(\n");
 
         buffer.append(tab);
-        buffer.append(") [DesigOperationActPar]");
+        buffer.append(") [ERROR2]");
         return buffer.toString();
     }
 }

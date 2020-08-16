@@ -7,7 +7,8 @@ import rs.ac.bg.etf.pp1.ast.*;
 parser code {:
 
 	Logger log = Logger.getLogger(getClass());
-   
+      
+   boolean errorDetected;
    
     // slede redefinisani metodi za prijavu gresaka radi izmene teksta poruke
      
@@ -25,6 +26,7 @@ parser code {:
     }
 
     public void report_error(String message, Object info) {
+    	errorDetected = true;
     	StringBuilder msg = new StringBuilder(message); 
     	if (info instanceof Symbol)
             msg.append (" na liniji ").append(((Symbol)info).left);
@@ -170,6 +172,9 @@ VarList ::= (VaribleList) VarList:V1 COMMA VarPart:part {: RESULT=new VaribleLis
 		;   
 		
 VarPart ::= (VariablePart) IDENT:varName {: RESULT=new VariablePart(varName); RESULT.setLine(varNameleft); :}
+		|      
+        (ERROR1) error:l
+        {: parser.report_error("Izvrsen oporavak od grekse pri deklarisanju promenljive u liniji "+lleft ,null);  :} {: RESULT=new ERROR1(); :}
 		|
 		(VariablePartArr) IDENT:varName LSQPAREN RSQPAREN {: RESULT=new VariablePartArr(varName); RESULT.setLine(varNameleft); :}
 		;
@@ -258,6 +263,9 @@ FormParsPart ::= (FormalParsPart) Type:fparType IDENT:fparName {: RESULT=new For
 
 Statement ::= (DesignatorStatementStatement) DesignatorStatement:D1 SEMI {: RESULT=new DesignatorStatementStatement(D1); RESULT.setLine(D1left); :}
 			|
+            (ERROR2) error SEMI:l
+            {: parser.report_error("Izvrsen oporavak od greske pri dodeli vrednosti do ; u liniji " +lleft,null);  :} {: RESULT=new ERROR2(); :}
+			|
 			(IfStatement) IF LPAREN Condition:C1 RPAREN ElseOptStatement:E2 {: RESULT=new IfStatement(C1, E2); RESULT.setLine(C1left); :}
 			|
 			(ForStatement) FOR LPAREN DesignatorStmtOpt:D1 SEMI ConditionOpt:C2 SEMI DesignatorStmtOpt:D3 RPAREN Statement:S4 {: RESULT=new ForStatement(D1, C2, D3, S4); RESULT.setLine(D1left); :}
@@ -308,7 +316,7 @@ DesigOperation ::= (DesigOperationAss) Assignop:A1 Expr:E2 {: RESULT=new DesigOp
 					|
 					(DesigOperationDec) DEC {: RESULT=new DesigOperationDec(); :}
 					|
-					(DesigOperationActPar) LPAREN ActParsOptional:A1 RPAREN {: RESULT=new DesigOperationActPar(A1); RESULT.setLine(A1left); :}
+					(DesigOperationActPar) LPAREN RPAREN {: RESULT=new DesigOperationActPar(); :}
 					;
 ActParsOptional ::= (ActualParsOptional) ActPars:A1 {: RESULT=new ActualParsOptional(A1); RESULT.setLine(A1left); :}
 				|

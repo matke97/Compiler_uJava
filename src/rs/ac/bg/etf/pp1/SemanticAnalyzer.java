@@ -58,6 +58,53 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		log.info(msg.toString());
 	}
 	
+	public String objToString(Obj o)
+    {
+		StringBuilder msg = new StringBuilder(); 
+		switch(o.getKind())
+		{
+		case 0:
+			msg.append("Con ");
+			break;
+		case 1:
+			msg.append("Var ");
+			break;
+		case 2:
+			msg.append("Type ");
+			break;
+		case 3: 
+			msg.append("Meth ");
+			break;
+		case 4:
+			msg.append("Fld ");
+			break;
+		case 5:
+			msg.append("Elem ");
+			break;
+		}
+		msg.append(o.getName()+ ": ");
+		switch(o.getType().getKind())
+		{
+		case 0:
+			msg.append("None");
+			break;
+		case 1:
+			msg.append("int");
+			break;
+		case 2: 
+			msg.append("char");
+			break;
+		case 3:
+			msg.append("array");
+			break;
+		case 4:
+			msg.append("class");
+			break;
+		}
+		msg.append(", "+ o.getAdr()+",");
+		msg.append(o.getLevel());
+		return msg.toString();
+    }
 	//VISIT METHODS 
 	
 	public void visit(VarDecl vardecl){
@@ -66,7 +113,11 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	}
 	
     public void visit(PrintStatement  print) {
-		printCallCount++;
+		
+		if(print.getExpr().struct != Tab.intType && print.getExpr().struct != Tab.charType)
+		{
+			report_error("Greska na liniji "+ print.getLine()+": Izraz mora biti int ili char tipa", null);
+		}
 	}
     
     /**
@@ -76,7 +127,11 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     {
     	progName.obj = Tab.insert(Obj.Prog, progName.getProgramName(), Tab.noType);
     	Tab.openScope();
+    	
+    	log.info("=======================================SEMANTICKA ANALIZA=====================================");
+    	report_info("Zapocinjemo sa glavnim programom",progName);
     }
+    
     
     /**
      * Visit metoda za hvatanje programa
@@ -86,6 +141,17 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     	nVars = Tab.currentScope.getnVars();
     	Tab.chainLocalSymbols(program.getProgName().obj);
     	Tab.closeScope();
+    	
+    	log.info("=======================================SINTAKSNA ANALIZA=====================================");
+		log.info(numClass+"    classes");
+		log.info(numMethod+"    methods in program");
+		log.info(numGlobalVar+"    global variables");
+		log.info(numConst+"    constants");
+		log.info(numGlobalArray+"    global arrays");
+		log.info(numLocalVarMain+"    local variables in main");
+		log.info(numLocalArrayMain+"    local arrays in main");
+		log.info(numStatementMain+"    statements in main");
+		log.info(numFunctionCallMain+"    function calls in main");
     }
     
     //for vardecl
@@ -101,6 +167,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     		report_error("Greska na "+part.getLine()+":"+"Simbol" + part.getVarName() + "je vec deklarisan", null);
     		return;
     	}
+    	report_info("Deklarisana promenljiva:"+part.getVarName()+" tipa "+ currentType.getKind(), null);
     	if(currentClass != null && currentMethod == null)
     	{
     		/*field type*/
@@ -115,6 +182,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     			numGlobalVar++;
     		}
     		Tab.insert(Obj.Var, part.getVarName(), currentType);
+    		
     	}
     }
     public void visit(VariablePartArr partArr)
@@ -125,6 +193,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     		report_error("Greska na "+partArr.getLine()+":"+"Simbol" + partArr.getVarName() + "je vec deklarisan", null);
     		return;
     	}
+    	report_info("Deklarisan niz:"+partArr.getVarName()+" tipa "+ currentType.getKind(), null);
     	if(currentClass != null && currentMethod == null)
     	{
     		/*field type*/
@@ -189,6 +258,10 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     	if(methodTypeName.getMethodName() == "main")
     	{
     		//main metoda
+    		if(methRetType != Tab.noType)
+    		{
+    			report_error("Greska na liniji "+ methodTypeName.getLine()+": Main metodi je tip povratne vr void.", null);
+    		}
     		mainDeclared = true;
     	}
     	currentMethod = Tab.insert(Obj.Meth, methodTypeName.getMethodName(), methRetType);
@@ -210,6 +283,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     	
     	returnFound = false;
     	currentMethod = null;
+    	returnType = null;
     }
     
     public void visit(ReturnStatement rtstm)
@@ -227,9 +301,12 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     	if(currentMethod != null)
     	{
     		Struct currMethType = currentMethod.getType();
-    		if(currMethType.compatibleWith(rv.getExpr().struct))
+    		if(!currMethType.compatibleWith(rv.getExpr().struct))
     		{
     			report_error("Greska na liniji " + rv.getLine() + " : " + "tip izraza u return naredbi ne slaze se sa tipom povratne vrednosti funkcije " + currentMethod.getName(), null);
+    		}else
+    		{
+    			returnType = currentMethod.getType();
     		}
     	}
     }
@@ -238,6 +315,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     {
     	returnType = Tab.noType;
     }
+    
     public void visit(ConstPart constPart)
     {
     	if(Tab.currentScope.findSymbol(constPart.getConstName()) != null)
@@ -300,6 +378,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     		report_error("Greska na liniji:"+ desig.getLine() +". Nije definisan simbol"+ desig.getName(), null);
     	}else
     	{
+    		report_info("Pretraga na "+desig.getLine()+"("+desig.getName()+"), nadjeno:"+ objToString(currentDesigObj), desig.getParent());
     		desig.obj = currentDesigObj;
     	}
     	
@@ -315,7 +394,9 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     
     public void visit(DesignatorFactor desigfac)
     {
-    	
+    	//desigfac.struct = currentDesigObj.getType();
+    	desigfac.struct = desigfac.getDesignator().obj.getType();
+    	factorType = desigfac.getDesignator().obj.getType();
     }
     public void visit(FactorTerm facTerm)
     {
@@ -331,10 +412,12 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     
     public void visit(DesigOperationAss dop)
     {
-    	
-    	if(!dop.getExpr().struct.assignableTo(currentDesigObj.getType()))
+    	if(currentDesigObj != null) 
     	{
-    		report_error("Greska na liniji " + dop.getLine() + " : " + "nekompatibilni tipovi u dodeli vrednosti! ", null);
+    		if(dop.getExpr().struct != currentDesigObj.getType())
+    		{
+    			report_error("Greska na liniji " + dop.getLine() + " : " + "nekompatibilni tipovi u dodeli vrednosti! ", null);
+    		}
     	}
     }
     
@@ -377,6 +460,11 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     {
     	//Struct t = addExpr.getTerm().struct;
     	//Struct te = addExpr.getExprList()
+    }
+    
+    public void visit(Expr e)
+    {
+    	e.struct = factorType;
     }
     public boolean passed()
     {
