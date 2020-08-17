@@ -14,12 +14,16 @@ public class CodeGenerator extends VisitorAdaptor {
 	
 	Obj currentDesignator 		= null;
 	Boolean assignFlag			= false;
+	
+	int typeOfAddOp 			= -1; //FLAG ZA TIP OPERACIJE(MOZE BITI +, -, +=, -=)
+	int typeOfMulOp 			= -1; //FLAG ZA TIP OPERACIJE(MOZE BITI *, /, %,..)	
+	boolean minusTermFlag		= false; //flag za hvatanje - izraza tj -TERM
 	public int getMainPc(){
 		return mainPc;
 	}
 	
 
-	Logger log 				= Logger.getLogger(getClass());
+	Logger log= Logger.getLogger(getClass());
 	
 	public void report_info(String message, SyntaxNode info) {
 		StringBuilder msg = new StringBuilder(message); 
@@ -39,8 +43,23 @@ public class CodeGenerator extends VisitorAdaptor {
 		else
 		{
 			Code.loadConst(1);
-			Code.put(Code.print);
+			Code.put(Code.bprint);
 		}
+	}
+	
+	public void visit(ReadStatement rs)
+	{
+		Obj designObj = currentDesignator;
+		report_info("aAAAA" + designObj.getName(), null);
+		if (designObj.getType().getKind()==Struct.Int)
+		{
+			Code.put(Code.read);
+		}else if(designObj.getType().getKind()==Struct.Char)
+		{
+			Code.put(Code.bread);
+		}
+		
+		Code.store(designObj);
 	}
 	
 	public void visit(NumFactor nf)
@@ -50,6 +69,12 @@ public class CodeGenerator extends VisitorAdaptor {
 		con.setAdr(nf.getFact());
 		
 		Code.load(con);
+		if(minusTermFlag)
+		{
+			//SLUCAJ KAD IMAMMO -TERM TADA MORAMO DA IZV OPERACIJU NEGACIJE KOJOM CUVAMO PRAVU VR
+			minusTermFlag = false;
+			Code.put(Code.neg); 
+		}
 	}
 	
 	public void visit(CharFactor cf)
@@ -130,10 +155,17 @@ public class CodeGenerator extends VisitorAdaptor {
 		
 		SyntaxNode parent = desig.getParent();
 		
-		if(DesignatorStatement.class != parent.getClass() && FuncCallFactor.class != parent.getClass() && ParentFactor.class != parent.getClass() && desig.obj.getType().getKind()!=Struct.Array)
+		if(ReadStatement.class != parent.getClass() && DesignatorStatement.class != parent.getClass() && FuncCallFactor.class != parent.getClass() && ParentFactor.class != parent.getClass() && desig.obj.getType().getKind()!=Struct.Array)
 		{
-			//vidi dalt reba read!
+
 			Code.load(desig.obj);
+			
+			if(minusTermFlag)
+			{
+				//SLUCAJ KAD IMAMMO -TERM TADA MORAMO DA IZV OPERACIJU NEGACIJE KOJOM CUVAMO PRAVU VR
+				minusTermFlag = false;
+				Code.put(Code.neg); 
+			}
 		}
 
 	}
@@ -142,6 +174,38 @@ public class CodeGenerator extends VisitorAdaptor {
 	{
 		assignFlag = true;
 	}
+	
+	public void visit(DesigOperationInc inc)
+	{
+		//first param
+		Code.load(currentDesignator);
+		
+		//secont param
+		Obj con = Tab.insert(Obj.Con, "$", new Struct(Struct.Int));
+		con.setLevel(0);
+		con.setAdr(1);
+		
+		Code.load(con);
+		
+		Code.put(Code.add);
+
+		Code.store(currentDesignator);		
+	}
+	
+	public void visit(DesigOperationDec dec)
+	{
+		Code.load(currentDesignator);
+		Obj con = Tab.insert(Obj.Con, "$", new Struct(Struct.Int));
+		con.setLevel(0);
+		con.setAdr(-1);
+		
+		Code.load(con);
+		
+		Code.put(Code.add);
+
+		Code.store(currentDesignator);	
+	}
+	
 	
 	public void visit(Assignoper aop)
 	{
@@ -155,6 +219,7 @@ public class CodeGenerator extends VisitorAdaptor {
 			Code.store(ds.getDesignator().obj);
 			assignFlag = false;
 		}
+		
 	}
 	/*
 	 * Poziv metode kao samostalan statement
@@ -174,25 +239,68 @@ public class CodeGenerator extends VisitorAdaptor {
 		}
 		currentDesignator = null;
 	}
-	int cdd = -1;
+
+	public void visit(MinusExp em)
+	{
+		minusTermFlag = true;
+	}
 	public void visit(AddopExpr addexp)
 	{
-		if(cdd ==1 )
+		switch(typeOfAddOp)
 		{
+		case 1:
 			Code.put(Code.add);
-		}else if(cdd == 2)
-		{
+			break;
+		case 2:
 			Code.put(Code.sub);
+			break;
+		case 3:
+			break;
+		case 4:
 		}
+		
+		typeOfAddOp = -1;
+	}
+	
+	public void visit(MulopTerm mulTerm)
+	{
+		switch(typeOfMulOp)
+		{
+		case 1:
+			Code.put(Code.mul);
+			break;
+		case 2:
+			Code.put(Code.div);
+			break;
+		case 3:
+			Code.put(Code.rem);
+		}
+		
+		typeOfMulOp = -1;
 	}
 	
 	public void visit(Addoper addo)
 	{
-		cdd = 1;
+		typeOfAddOp = 1;
 	}
 	
 	public void visit(Suboper sub)
 	{
-		cdd = 2;
+		typeOfAddOp = 2;
+	}
+	
+	public void visit(Muloper mul)
+	{
+		typeOfMulOp = 1;
+	}
+	
+	public void visit(Divoper div)
+	{
+		typeOfMulOp = 2;
+	}
+	
+	public void visit(Modoper mod)
+	{
+		typeOfMulOp = 3;
 	}
 }

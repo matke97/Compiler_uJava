@@ -19,6 +19,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	boolean returnFound 	= false;
 	boolean errorDetected 	= false;
 	boolean mainDeclared 	= false;
+	boolean arrayDesigFlag 	= false; // flag za pristup nizu
 	int nVars;
 	
 	int numClass = 0, 	numMethod = 0, 	numGlobalVar = 0 ,	numConst = 0, 	numGlobalArray = 0;
@@ -208,6 +209,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     			numGlobalArray++;
     		}
     		Tab.insert(Obj.Var, partArr.getVarName(), new Struct(Struct.Array, currentType));
+    		
     	}
     }
     
@@ -380,16 +382,34 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     	{
     		report_info("Pretraga na "+desig.getLine()+"("+desig.getName()+"), nadjeno:"+ objToString(currentDesigObj), desig.getParent());
     		desig.obj = currentDesigObj;
+    		
+    		if(arrayDesigFlag)
+    		{
+    			if(currentDesigObj.getType().getKind() != Struct.Array)
+    			{
+    				report_error("Greska na liniji: " + desig.getLine() + ": Pristup elem niza promenljivoj koja nije niz.", null);
+    			}
+    			arrayDesigFlag = false;
+    		}
     	}
     	
     }
     
     public void visit(ArrayDesignPart adp)
     {
-    	if(currentDesigObj.getType().getKind() == Struct.Class)
+    	/*if(currentDesigObj.getType().getKind() != Struct.Array)
     	{
-    		report_error("Greska na liniji: " + adp.getLine() + ": Podrzani su samo ugradjeni tipovi podataka.", null);
+    		report_info("AAAAAAA "+ currentDesigObj.getType().getKind()+"AAAA " + currentDesigObj.getName() ,null);
+    		
+    	}else*/
+    	{
+    	
+    		if(adp.getExpr().struct.getKind() != Struct.Int)
+    		{
+    			report_error("Greska na liniji: " + adp.getLine() + ":Index mora biti tipa int", null);
+    		}
     	}
+    	arrayDesigFlag = true;
     }
     
     public void visit(DesignatorFactor desigfac)
@@ -471,6 +491,37 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     public void visit(Expr e)
     {
     	e.struct = factorType;
+    }
+    
+    
+    public void visit(ArrayExpr arrex)
+    {
+    	if(arrex.getExpr().struct.getKind() != Struct.Int)
+    	{
+    		report_error("Greska na liniji "+ arrex.getLine() + "Velicinu niza morate predstaviti int", null);
+    	}else
+    	{
+    		//vidje ovde za vrednost oca mu jebem!
+    	}
+    }
+    
+    
+    public void visit(ReadStatement rs)
+    {
+    	Obj desig = rs.getDesignator().obj;
+    	if(desig.getType().getKind() == Struct.Class)
+    	{
+    		report_error("Greska na liniji " + rs.getLine() + " sa std ulaza ne mozemo smestati u klasne tipove",null);
+    	}else
+    	{
+    		if(desig.getType().getKind() == Struct.Array && desig.getType().getElemType().getKind() == Struct.Class )
+    		{
+    			report_error("Greska na liniji " + rs.getLine() + " sa std ulaza ne mozemo smestati u klasne tipove",null);
+    		}else
+    		{
+    			//nzm jel treba nesto
+    		}
+    	}
     }
     public boolean passed()
     {

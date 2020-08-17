@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 17/7/2020 21:38:34
+// 17/7/2020 23:35:16
 
 
 package rs.ac.bg.etf.pp1.ast;
@@ -17,6 +17,7 @@ public interface Visitor {
     public void visit(CondTermList CondTermList);
     public void visit(MethodDeclListOpt MethodDeclListOpt);
     public void visit(ProgDeclList ProgDeclList);
+    public void visit(MinusEx MinusEx);
     public void visit(StatementList StatementList);
     public void visit(VarPart VarPart);
     public void visit(Addop Addop);
@@ -78,10 +79,9 @@ public interface Visitor {
     public void visit(AssignopMulOpRight AssignopMulOpRight);
     public void visit(AssignopAddOpRight AssignopAddOpRight);
     public void visit(Assignoper Assignoper);
+    public void visit(NoDesigList NoDesigList);
     public void visit(ArrayDesignPart ArrayDesignPart);
     public void visit(DotDesignPart DotDesignPart);
-    public void visit(NoDesignList NoDesignList);
-    public void visit(DesignList DesignList);
     public void visit(Designator Designator);
     public void visit(ActualParamExpr ActualParamExpr);
     public void visit(ActualParametersList ActualParametersList);
@@ -99,6 +99,7 @@ public interface Visitor {
     public void visit(MulopTerm MulopTerm);
     public void visit(NoAddopExpr NoAddopExpr);
     public void visit(AddopExpr AddopExpr);
+    public void visit(MinusExp MinusExp);
     public void visit(ExprPlus ExprPlus);
     public void visit(ExprMinus ExprMinus);
     public void visit(Expr Expr);

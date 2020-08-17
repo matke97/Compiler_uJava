@@ -5,20 +5,9 @@
 
 package rs.ac.bg.etf.pp1.ast;
 
-public class DotDesignPart extends DesignatorList {
+public class MinusExp extends MinusEx {
 
-    private String name;
-
-    public DotDesignPart (String name) {
-        this.name=name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name=name;
+    public MinusExp () {
     }
 
     public void accept(Visitor visitor) {
@@ -39,13 +28,10 @@ public class DotDesignPart extends DesignatorList {
     public String toString(String tab) {
         StringBuffer buffer=new StringBuffer();
         buffer.append(tab);
-        buffer.append("DotDesignPart(\n");
-
-        buffer.append(" "+tab+name);
-        buffer.append("\n");
+        buffer.append("MinusExp(\n");
 
         buffer.append(tab);
-        buffer.append(") [DotDesignPart]");
+        buffer.append(") [MinusExp]");
         return buffer.toString();
     }
 }

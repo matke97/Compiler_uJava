@@ -1,11 +1,11 @@
 // generated with ast extension for cup
 // version 0.8
-// 17/7/2020 21:38:34
+// 17/7/2020 23:35:16
 
 
 package rs.ac.bg.etf.pp1.ast;
 
-public class ArrayDesignPart extends DesignatorPart {
+public class ArrayDesignPart extends DesignatorList {
 
     private Expr Expr;
 

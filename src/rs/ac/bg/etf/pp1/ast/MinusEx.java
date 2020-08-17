@@ -5,7 +5,7 @@
 
 package rs.ac.bg.etf.pp1.ast;
 
-public abstract class ExprList implements SyntaxNode {
+public abstract class MinusEx implements SyntaxNode {
 
     private SyntaxNode parent;
 
