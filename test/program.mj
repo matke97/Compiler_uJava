@@ -5,16 +5,20 @@ program MJProgram
 	const int d = 10;
 {
 	
-	int k () int c;{
+	int k () int c;
+	{
 		c = 2;
-		return c + 2;
+		return 7;
 	}
 
-	void main() int q;{
-		y = 2;
-		x = y + 2;
-		y = k() + 3;
+	void main() int q;
+	{
+		print(d);
+		y = k() +2 ;
+		x = y - 2;
+		//y = k() + 3;
 		print(y);
-		return;
+		print(x);
+		
 	}
 }

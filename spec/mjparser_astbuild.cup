@@ -307,7 +307,7 @@ ConditionOpt ::= (OptionalCondition) Condition:C1 {: RESULT=new OptionalConditio
 					(NoCondition) {: RESULT=new NoCondition(); :} /* epsilon */
 					;
 
-DesignatorStatement ::= (DesignStatment) Designator:D1 DesigOperation:D2 {: RESULT=new DesignStatment(D1, D2); RESULT.setLine(D1left); :} ;
+DesignatorStatement ::= (DesignStatment) Designator:designator DesigOperation:D1 {: RESULT=new DesignStatment(designator, D1); RESULT.setLine(designatorleft); :} ;
 
 
 DesigOperation ::= (DesigOperationAss) Assignop:A1 Expr:E2 {: RESULT=new DesigOperationAss(A1, E2); RESULT.setLine(A1left); :}
@@ -365,7 +365,7 @@ Term ::= (MulopTerm) Term:T1 Mulop:M2 Factor:fact {: RESULT=new MulopTerm(T1, M2
 		
 Factor ::= (DesignatorFactor) Designator:desig {: RESULT=new DesignatorFactor(desig); RESULT.setLine(desigleft); :}
 			|
-		   (FuncCallFactor) Designator:funcname LPAREN ActParsOptional:A1 RPAREN {: RESULT=new FuncCallFactor(funcname, A1); RESULT.setLine(funcnameleft); :}
+		   (FuncCallFactor) Designator:funcname LPAREN  RPAREN {: RESULT=new FuncCallFactor(funcname); RESULT.setLine(funcnameleft); :}
 		    |
 		   (ParentFactor) LPAREN Designator:D1 RPAREN {: RESULT=new ParentFactor(D1); RESULT.setLine(D1left); :}
 			|

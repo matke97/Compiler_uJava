@@ -437,7 +437,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     public void visit(BoolFactor bf)
     {
     	bf.struct = Tab.intType;
-    	factorType = Tab.charType;
+    	factorType = Tab.intType;
     }
     
     public void visit(FuncCallFactor fcf)
@@ -445,8 +445,14 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     	Obj func = fcf.getDesignator().obj;
     	if(Obj.Meth == func.getKind())
     	{
-			report_info("Pronadjen poziv funkcije " + func.getName() + " na liniji " + fcf.getLine(), null);
-			fcf.struct = func.getType();
+    		if(Tab.noType == func.getType())
+    		{
+    			report_error("Semanticka greska "+ func.getName() + " se ne moze koristiti u izrazima jer nema povratnu vr.", null);
+    		}else
+    		{
+    			report_info("Pronadjen poziv funkcije " + func.getName() + " na liniji " + fcf.getLine(), null);
+				fcf.struct = func.getType();
+    		}
     	}
     	else
     	{

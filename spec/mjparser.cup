@@ -263,7 +263,7 @@ ConditionOpt ::= (OptionalCondition) Condition
 					(NoCondition) /* epsilon */
 					;
 
-DesignatorStatement ::= (DesignStatment) Designator DesigOperation ;
+DesignatorStatement ::= (DesignStatment) Designator:designator DesigOperation ;
 
 
 DesigOperation ::= (DesigOperationAss) Assignop Expr
@@ -321,7 +321,7 @@ Term ::= (MulopTerm) Term Mulop Factor:fact
 		
 Factor ::= (DesignatorFactor) Designator:desig
 			|
-		   (FuncCallFactor) Designator:funcname LPAREN ActParsOptional RPAREN
+		   (FuncCallFactor) Designator:funcname LPAREN  RPAREN
 		    |
 		   (ParentFactor) LPAREN Designator RPAREN
 			|
