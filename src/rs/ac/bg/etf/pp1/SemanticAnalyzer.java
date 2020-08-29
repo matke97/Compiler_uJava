@@ -15,11 +15,18 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	Obj currentClass 		= null;
 	Obj currentDesigObj     = null;
 	
-	Struct currentType 		= null;
-	boolean returnFound 	= false;
-	boolean errorDetected 	= false;
-	boolean mainDeclared 	= false;
-	boolean arrayDesigFlag 	= false; // flag za pristup nizu
+	Struct currentType 					= null;
+	boolean returnFound 				= false;
+	boolean errorDetected 				= false;
+	boolean mainDeclared 				= false;
+	boolean arrayDesigFlag 				= false; // flag za pristup nizu
+	boolean newArrayFlag 				= false;
+	boolean arrayDesignatorStatement 	= false; //KADA IMAMO DESIG STaTEMNTU I DESIGNATOR JE PRISTUP ELEMENTU NIZA
+    boolean pristupNizu 				= false;
+    boolean arrayRead 					= false;
+	int desigStatementOperation = -1; //operacija koj se desava sa dstm
+	Struct desigStatementExpr 	= null;
+	//Struct factorType 			= null;
 	int nVars;
 	
 	int numClass = 0, 	numMethod = 0, 	numGlobalVar = 0 ,	numConst = 0, 	numGlobalArray = 0;
@@ -114,11 +121,23 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	}
 	
     public void visit(PrintStatement  print) {
-		
-		if(print.getExpr().struct != Tab.intType && print.getExpr().struct != Tab.charType)
+	
+    	
+    	/*if((print.getExpr().struct).getKind() != Struct.Int && (print.getExpr().struct).getKind() != Struct.Char)
 		{
-			report_error("Greska na liniji "+ print.getLine()+": Izraz mora biti int ili char tipa", null);
+    		report_error("Greska na liniji "+ print.getLine()+": Izraz mora biti int ili char tipa", null);
+		}*/
+    	
+    	/*if((print.getExpr().struct).getKind() != Struct.Int && (print.getExpr().struct).getKind() != Struct.Char)
+		{
+    		report_error("Greska na liniji "+ print.getLine()+": Izraz mora biti int ili char tipa", null);
+		}*/
+    	
+    	if((print.getExpr().struct).getKind() != Struct.Int && (print.getExpr().struct).getKind() != Struct.Char)
+		{
+    		report_error("Greska na liniji "+ print.getLine()+": Izraz mora biti int ili char tipa", null);
 		}
+    	
 	}
     
     /**
@@ -394,34 +413,51 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     	}
     	
     }
-    
+
     public void visit(ArrayDesignPart adp)
     {
-    	/*if(currentDesigObj.getType().getKind() != Struct.Array)
-    	{
-    		report_info("AAAAAAA "+ currentDesigObj.getType().getKind()+"AAAA " + currentDesigObj.getName() ,null);
-    		
-    	}else*/
-    	{
     	
-    		if(adp.getExpr().struct.getKind() != Struct.Int)
+    	
+    	if(adp.getExpr().struct.getKind() != Struct.Int)
     		{
     			report_error("Greska na liniji: " + adp.getLine() + ":Index mora biti tipa int", null);
     		}
+    	
+    	if((adp.getParent().getParent()).getClass() == DesignatorStatement.class)
+    	{
+    		
+    		arrayDesignatorStatement = true;
+    	}else if((adp.getParent().getParent()).getClass() == ReadStatement.class)
+    	{
+    		arrayRead = true;
     	}
+    	
+    	pristupNizu = true;
+    	//if((adp.getParent().getParent().getParent()))
     	arrayDesigFlag = true;
     }
     
     public void visit(DesignatorFactor desigfac)
     {
     	//desigfac.struct = currentDesigObj.getType();
-    	desigfac.struct = desigfac.getDesignator().obj.getType();
-    	factorType = desigfac.getDesignator().obj.getType();
+    	Struct s;
+    	if(pristupNizu)
+    	{
+    		s = desigfac.getDesignator().obj.getType().getElemType();
+    		
+    	}else
+    	{
+    		s = desigfac.getDesignator().obj.getType();
+    	}
+    	desigfac.struct = s;
+    	factorType 		= s;
+    	
+    	pristupNizu = false;
     }
     public void visit(FactorTerm facTerm)
     {
     	facTerm.struct = facTerm.getFactor().struct;
-    	//factorType  = 
+    	factorType  = facTerm.getFactor().struct;
     }
     
     public void visit(MulopTerm mulopTerm)
@@ -432,13 +468,81 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     
     public void visit(DesigOperationAss dop)
     {
-    	if(currentDesigObj != null) 
+    	desigStatementOperation = 1;
+    	
+    	desigStatementExpr = dop.getExpr().struct;
+    	
+    	
+    }
+    
+    public void visit(DesigOperationInc inc)
+    {
+    	desigStatementOperation = 2;
+    }
+    
+    public void visit(DesigOperationDec dec)
+    {
+    	desigStatementOperation = 3;
+    }
+    
+    public void visit(DesigOperationActPar proccall)
+    {
+    	desigStatementOperation = 4;
+    }
+    public void visit(DesignatorStatement ds)
+    {
+    	Obj desig = ds.getDesignator().obj;
+    	//PAZI MORAS ZA ARRAY
+    	//report_info("ASASASDASD: "+ ds.getDesignator().obj.getName(),null);
+    	switch(desigStatementOperation)
     	{
-    		if(dop.getExpr().struct != currentDesigObj.getType())
+    	case 1: //=====DS ASSIGMENT===========
+    		
+    		if(!arrayDesignatorStatement && desigStatementExpr.getKind() != desig.getType().getKind())
     		{
-    			report_error("Greska na liniji " + dop.getLine() + " : " + "nekompatibilni tipovi u dodeli vrednosti! ", null);
+    			report_error("Greska na liniji " + ds.getLine() + ": Nekompatibilni tipvoi u dodeli vrednosti",null);
+    		}/*else if(arrayDesignatorStatement && desigStatementExpr.getKind() != (desig.getType().getElemType()).getKind())
+    		{
+    			report_error("Greska na liniji " + ds.getLine() + ": Nekompatibilni tipvoi u dodeli vrednosti",null);
+    		}*/
+    		
+    		
+    		//========END DS ASSIGMENT=========
+    		break;
+    		
+    	case 2://========INCREMENT=========
+    		if(!arrayDesignatorStatement && desig.getType().getKind()  != Struct.Int )
+    		{
+    			report_error("Greska na liniji " + ds.getLine() + ": Incerement se moze raditi samo sa integer tipom",null);
+    		}else if(arrayDesignatorStatement && (desig.getType().getElemType()).getKind() != Struct.Int)
+    		{
+    			report_error("Greska na liniji " + ds.getLine() + ": Incerement se moze raditi samo sa integer tipom",null);
     		}
+    		break;
+    		
+    	case 3://========DECREMENT=========
+    		if(!arrayDesignatorStatement && desig.getType().getKind()  != Struct.Int )
+    		{
+    			report_error("Greska na liniji " + ds.getLine() + ": Decrement se moze raditi samo sa integer tipom",null);
+    		}else if(arrayDesignatorStatement && (desig.getType().getElemType()).getKind() != Struct.Int)
+    		{
+    			report_error("Greska na liniji " + ds.getLine() + ": Dec se moze raditi samo sa integer tipom",null);
+    		}
+    		break;
+    		
+    	case 4: //========PROC CALL=========
+    		if(desig.getKind() != Obj.Meth)
+    		{
+    			report_error("Greska na liniji " + ds.getLine() + ": " + desig.getName() + " nije metoda.",null);
+    		}
+    		break;
     	}
+    	
+    	desigStatementOperation = -1;
+    	desigStatementExpr 		= null;
+    	arrayDesignatorStatement= false;
+    	pristupNizu				= false;
+    	
     }
     
     
@@ -468,9 +572,11 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     		if(Tab.noType == func.getType())
     		{
     			report_error("Semanticka greska "+ func.getName() + " se ne moze koristiti u izrazima jer nema povratnu vr.", null);
+    			fcf.struct = Tab.noType;
     		}else
     		{
     			report_info("Pronadjen poziv funkcije " + func.getName() + " na liniji " + fcf.getLine(), null);
+    			//report_info("Pronadjen poziv funkcije " + func.getType().getKind(), null);
 				fcf.struct = func.getType();
     		}
     	}
@@ -479,8 +585,35 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 			report_error("Greska na liniji " + fcf.getLine()+" : ime " + func.getName() + " nije funkcija!", null);
 			fcf.struct = Tab.noType;
     	}
+    	
+    	factorType = fcf.struct;
     }
     
+    
+    public void visit(NewTypeFactor nf)
+    {
+    	
+    	Struct s = nf.getType().struct;
+    	
+    	if(s.getKind() == Struct.Class)
+    	{
+    		report_error("Greska na liniji " + nf.getLine() + " Kreiranje objekata i nizova moguce samo za osnovne tipove.",null);
+    	}else
+    	{
+    		if(newArrayFlag)
+    		{
+    			
+    			newArrayFlag = false;
+    			nf.struct = new Struct(Struct.Array, s);
+
+    			factorType = nf.struct;
+    		}else
+    		{
+    			nf.struct = s;
+    			factorType = s;
+    		}
+    	}
+    }
     
     public void visit(AddopExpr addExpr)
     {
@@ -501,28 +634,44 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     		report_error("Greska na liniji "+ arrex.getLine() + "Velicinu niza morate predstaviti int", null);
     	}else
     	{
-    		//vidje ovde za vrednost oca mu jebem!
+    		newArrayFlag = true;
     	}
     }
+    
+    
+    
+    public void visit(ParentFactor pf)
+    {
+    	
+    }
+    
     
     
     public void visit(ReadStatement rs)
     {
     	Obj desig = rs.getDesignator().obj;
-    	if(desig.getType().getKind() == Struct.Class)
+    	if(arrayRead)
     	{
-    		report_error("Greska na liniji " + rs.getLine() + " sa std ulaza ne mozemo smestati u klasne tipove",null);
-    	}else
+    		if(desig.getType().getElemType().getKind() != Struct.Int  && desig.getType().getElemType().getKind() != Struct.Char && arrayRead)
+    		{
+    	    		report_error("Greska na liniji "+ rs.getLine()+": Niz mora biti tipa int ili char", null);
+    	    }
+    		arrayRead = false;
+    	}
+    	else
     	{
-    		if(desig.getType().getKind() == Struct.Array && desig.getType().getElemType().getKind() == Struct.Class )
+    		if(desig.getType().getKind() != Struct.Int && desig.getType().getKind() != Struct.Char)
     		{
-    			report_error("Greska na liniji " + rs.getLine() + " sa std ulaza ne mozemo smestati u klasne tipove",null);
-    		}else
-    		{
-    			//nzm jel treba nesto
+  
+    			report_error("Greska na liniji "+ rs.getLine()+": Izraz mora biti int ili char tipa", null);
     		}
     	}
+    	
+    	
     }
+    
+    
+    
     public boolean passed()
     {
     	return !errorDetected;

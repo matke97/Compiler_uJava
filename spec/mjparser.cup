@@ -263,7 +263,7 @@ ConditionOpt ::= (OptionalCondition) Condition
 					(NoCondition) /* epsilon */
 					;
 
-DesignatorStatement ::= (DesignStatment) Designator:designator DesigOperation ;
+DesignatorStatement ::= (DesignatorStatement) Designator:designator DesigOperation ;
 
 
 DesigOperation ::= (DesigOperationAss) Assignop Expr
@@ -326,7 +326,7 @@ Factor ::= (DesignatorFactor) Designator:desig
 			|
 		   (FuncCallFactor) Designator:funcname LPAREN  RPAREN
 		    |
-		   (ParentFactor) LPAREN Designator RPAREN
+		   (ParentFactor) LPAREN Expr RPAREN
 			|
 		   (NumFactor) NUMBER:fact
 			|
@@ -334,7 +334,7 @@ Factor ::= (DesignatorFactor) Designator:desig
 		    |
 		   (BoolFactor) BOOL:fact
 		    |
-		   (NewTypeFactor) NEW Type ArrExprOpt
+		   (NewTypeFactor) NEW Type:typeNew ArrExprOpt
 		   ;
 		
 ArrExprOpt ::= (ArrayExpr) LSQPAREN Expr RSQPAREN

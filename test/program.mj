@@ -2,26 +2,50 @@ program MJProgram
 	int x; int y;
 	int z[];
 	int a,b,c;
+	const int f = 5;
 	const char d = 'd';
 {
 	
 	int k () int c;
 	{
-		c = z[2];
+		//c = z[2];
 		return 7;
 	}
 
 	void main() int q;
 	{
 		print(d);
-		//read(b);
-		y = 2;
+
+		//y = 2+1 * (6+1);
+		//y = 5* (5 - 7) +k();	
+		y =  -5;
 		y--;
-		x = y;
+		
+		x = -y;
 		x++;
-		//y = k() + 3;
+		
+		//y = ;
+		
+		
+		
+		//read(y);
+		
+		//y = z[2];
+		
+		//y = z[5];
+		//
+		
 		print(y);
 		print(x);
+		z = new int[10];
+		
+		z[6] = f;
+		
+		z[7] = 66;
+		
+		y = z[7];
+		
+		print(y);
 		
 	}
 }

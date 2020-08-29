@@ -101,7 +101,7 @@ import java_cup.runtime.Symbol;
 <COMMENT> "\r\n" 			{ yybegin(YYINITIAL); }
 
 
-"true" | "false" 		{ return new_symbol(sym.BOOL, 	new Integer (yytext().equals("true") ? 1 : 0)); }
+"true" | "false" 		{ return new_symbol(sym.BOOL, 	new Integer ((yytext().equals("true") ? 1 : 0))); }
 [0-9]+  				{ return new_symbol(sym.NUMBER, new Integer (yytext())); }
 "'"."'" 				{ return new_symbol(sym.CHAR, 	new Character (yytext().charAt(1))); }
 

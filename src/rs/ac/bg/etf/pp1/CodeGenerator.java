@@ -13,17 +13,32 @@ public class CodeGenerator extends VisitorAdaptor {
 	private int mainPc;
 	
 	Obj currentDesignator 		= null;
-	Boolean assignFlag			= false;
 	
+	Boolean FuncCallFactorFlag 	= false;
+	Boolean newArrayFlag		= false; // ako operator new kreira niz
+	Boolean desigStatmArray		= false; 
+	//Boolean new
+	
+	
+	int typeDesigStmtOper		= -1;
 	int typeOfAddOp 			= -1; //FLAG ZA TIP OPERACIJE(MOZE BITI +, -, +=, -=)
 	int typeOfMulOp 			= -1; //FLAG ZA TIP OPERACIJE(MOZE BITI *, /, %,..)	
 	boolean minusTermFlag		= false; //flag za hvatanje - izraza tj -TERM
+	Struct designatorStatementExpr = null;
+	
+	boolean desigFactorArray	   = false;
+	boolean desigReadArray		   = false;
+	
 	public int getMainPc(){
 		return mainPc;
 	}
 	
 
 	Logger log= Logger.getLogger(getClass());
+
+	boolean arrayIndexFlag = false;
+
+
 	
 	public void report_info(String message, SyntaxNode info) {
 		StringBuilder msg = new StringBuilder(message); 
@@ -45,6 +60,7 @@ public class CodeGenerator extends VisitorAdaptor {
 			Code.loadConst(1);
 			Code.put(Code.bprint);
 		}
+		
 	}
 	
 	public void visit(ReadStatement rs)
@@ -59,7 +75,7 @@ public class CodeGenerator extends VisitorAdaptor {
 			Code.put(Code.bread);
 		}
 		
-		Code.store(designObj);
+		Code.store(rs.getDesignator().obj);
 	}
 	
 	public void visit(NumFactor nf)
@@ -96,6 +112,42 @@ public class CodeGenerator extends VisitorAdaptor {
 		Code.load(con);
 	}
 	
+	public void visit(ParentFactor pf)
+	{
+		
+		
+	}
+	
+	public void visit(NewTypeFactor nf)
+	{
+		if(newArrayFlag)
+		{
+			newArrayFlag = false;
+			Code.put(Code.newarray);
+			
+			if (nf.getType().struct.getKind() == Struct.Int)
+			{
+				Code.put(1);
+			}
+			else 
+			{
+				Code.put(0);	
+			}
+		}else
+		{
+			//new var
+			Code.put(Code.new_);
+			if (nf.getType().struct.getKind() == Struct.Int)
+			{
+				Code.put(1);
+			}
+		}
+	}
+	
+	public void visit(ArrayExpr ae)
+	{
+		newArrayFlag = true;
+	}
 	public void visit(MethodTypeName methodTypeName)
 	{
 		
@@ -144,9 +196,14 @@ public class CodeGenerator extends VisitorAdaptor {
 	{
 		Obj funcObj = fcf.getDesignator().obj;
 		int offset = funcObj.getAdr() - Code.pc;
-		
+		FuncCallFactorFlag = true;
 		Code.put(Code.call);
 		Code.put2(offset);
+	}
+	
+	public void visit(DesignatorFactor df)
+	{
+		
 	}
 	
 	public void visit(Designator desig)
@@ -155,37 +212,140 @@ public class CodeGenerator extends VisitorAdaptor {
 		
 		SyntaxNode parent = desig.getParent();
 		
-		if(ReadStatement.class != parent.getClass() && DesignatorStatement.class != parent.getClass() && FuncCallFactor.class != parent.getClass() && ParentFactor.class != parent.getClass() && desig.obj.getType().getKind()!=Struct.Array)
+		if( ReadStatement.class != parent.getClass() && DesignatorStatement.class != parent.getClass() 
+				&& desig.obj.getType().getKind()!=Struct.Array && FuncCallFactor.class != parent.getClass() && !arrayIndexFlag)
 		{
 
+			//ovde mora da se menja za array
 			Code.load(desig.obj);
 			
 			if(minusTermFlag)
 			{
 				//SLUCAJ KAD IMAMMO -TERM TADA MORAMO DA IZV OPERACIJU NEGACIJE KOJOM CUVAMO PRAVU VR
-				minusTermFlag = false;
+				
 				Code.put(Code.neg); 
 			}
 		}
-
+		
+		/*
+		 * Ako  je desig[index] i ako je ovj designator factor, onda treba da dohvatimo tu vrednost!
+		 * Na EXP STEKU SE VEC NALAZI VR INDEXA
+		 */
+		if(desigFactorArray)
+		{
+			report_info("OVDE SAM NA LINIJI "+ desig.getLine()+ "       " + currentDesignator.getName(), null);
+			Obj qqq = new Obj(Obj.Var, "%fff%", Tab.intType);
+			
+			Code.store(qqq);
+			
+			Code.load(desig.obj);
+			Code.load(qqq);
+			
+			Code.put(Code.aload);
+			
+			
+			if(minusTermFlag)
+			{
+				Code.put(Code.neg); 
+			}
+		}
+		
+		/*
+		 * Ako se desig[ind] niz nalazi unutar read, dakle smestanje sa Std.in u neki elem niza!
+		 */
+		if(desigReadArray)
+		{
+			Obj ind = new Obj(Obj.Var,"$index$", Tab.intType);
+			
+			Code.store(ind);
+			Code.load(currentDesignator);
+			Code.load(ind);
+			
+			Code.put(Code.aload);
+		}
+		
+		
+		if(currentDesignator.getType().getKind() == Struct.Array && !arrayIndexFlag)
+		{
+			//new type[123];
+			Code.load(currentDesignator);
+		}
+		
+		minusTermFlag = false;
+		arrayIndexFlag = false;
+		desigFactorArray = false;
+		desigReadArray = false;
 	}
+	
+	
+	public void visit( DesignatorStatement ds )
+	{
+		switch(typeDesigStmtOper) //PROMENI FLAG ILI CODE OPERACIJE
+		{
+		case 1: //ASSIGN
+			if(desigStatmArray)
+			{
+				//arr[ind] = expr;
+				report_info("dodela vr elemntu niza: "+ ds.getDesignator().obj.getName() + " na liniji:"+ ds.getLine(), null);
+				
+				Struct poms = new Struct(Struct.Array, ds.getDesignator().obj.getType().getElemType());
+				Obj pom = new Obj(Obj.Elem, ds.getDesignator().obj.getName(), poms);
+				
+				Obj pom1= new Obj(Obj.Var, "$$$1", Tab.intType);
+				Obj pom2 = new Obj(Obj.Var, "$$$2", Tab.intType);
+				
+				Code.store(pom1);
+				
+				Code.store(pom2);
+
+				Code.load(ds.getDesignator().obj);
+				
+				Code.load(pom2);
+				Code.load(pom1);
+				
+				Code.store(pom);
+			}
+			else if(ds.getDesignator().obj.getType().getKind() == Struct.Array)
+			{
+				Code.store(ds.getDesignator().obj);
+				
+			}
+			else
+			{
+				report_info("dodela vr promenljivoj: "+ ds.getDesignator().obj.getName() + " na liniji:"+ ds.getLine(), null);
+				Code.store(ds.getDesignator().obj);
+			}
+			
+			break;
+			
+		case 2://generisano ranije trebace mozda posle!
+			break;
+		case 3:
+			break;
+		}
+			typeDesigStmtOper 		= -1;
+			desigStatmArray = false;
+		
+		
+	}
+	
+	
 	
 	public void visit(DesigOperationAss dopa)
 	{
-		assignFlag = true;
+		typeDesigStmtOper 		= 1;
+		designatorStatementExpr = dopa.getExpr().struct;
+		
 	}
 	
 	public void visit(DesigOperationInc inc)
 	{
 		//first param
+		typeDesigStmtOper 		= 2;
+		
 		Code.load(currentDesignator);
 		
-		//secont param
-		Obj con = Tab.insert(Obj.Con, "$", new Struct(Struct.Int));
-		con.setLevel(0);
-		con.setAdr(1);
-		
-		Code.load(con);
+		Code.loadConst(1);
 		
 		Code.put(Code.add);
 
@@ -194,13 +354,10 @@ public class CodeGenerator extends VisitorAdaptor {
 	
 	public void visit(DesigOperationDec dec)
 	{
+		
+		typeDesigStmtOper 		= 3;
 		Code.load(currentDesignator);
-		Obj con = Tab.insert(Obj.Con, "$", new Struct(Struct.Int));
-		con.setLevel(0);
-		con.setAdr(-1);
-		
-		Code.load(con);
-		
+		Code.loadConst(-1);
 		Code.put(Code.add);
 
 		Code.store(currentDesignator);	
@@ -211,16 +368,31 @@ public class CodeGenerator extends VisitorAdaptor {
 	{
 	
 	}
-	public void visit( DesignStatment ds )
+	
+	/*
+	 * ako je doslo do tipa arr[i] pristupa!
+	 */
+	
+	public void visit(ArrayDesignPart arrdp)
 	{
-		if(assignFlag)
+		arrayIndexFlag = true;
+		SyntaxNode sn = arrdp.getParent().getParent(); //pazi sadd
+		if(sn.getClass() == DesignatorStatement.class)
 		{
-			report_info("dodela vr promenljivoj: "+ ds.getDesignator().obj.getName() + " na liniji:"+ ds.getLine(), null);
-			Code.store(ds.getDesignator().obj);
-			assignFlag = false;
+			desigStatmArray = true;
 		}
-		
+		else if(sn.getClass() == DesignatorFactor.class)
+		{
+			desigFactorArray = true;
+			
+		}
+		else if(sn.getClass() == ReadStatement.class)
+		{
+			desigReadArray  = true;
+		}
 	}
+	
+	
 	/*
 	 * Poziv metode kao samostalan statement
 	 */

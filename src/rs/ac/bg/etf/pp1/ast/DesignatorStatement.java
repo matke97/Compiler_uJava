@@ -1,15 +1,39 @@
 // generated with ast extension for cup
 // version 0.8
-// 17/7/2020 23:35:16
+// 18/7/2020 18:57:26
 
 
 package rs.ac.bg.etf.pp1.ast;
 
-public abstract class DesignatorStatement implements SyntaxNode {
+public class DesignatorStatement implements SyntaxNode {
 
     private SyntaxNode parent;
-
     private int line;
+    private Designator Designator;
+    private DesigOperation DesigOperation;
+
+    public DesignatorStatement (Designator Designator, DesigOperation DesigOperation) {
+        this.Designator=Designator;
+        if(Designator!=null) Designator.setParent(this);
+        this.DesigOperation=DesigOperation;
+        if(DesigOperation!=null) DesigOperation.setParent(this);
+    }
+
+    public Designator getDesignator() {
+        return Designator;
+    }
+
+    public void setDesignator(Designator Designator) {
+        this.Designator=Designator;
+    }
+
+    public DesigOperation getDesigOperation() {
+        return DesigOperation;
+    }
+
+    public void setDesigOperation(DesigOperation DesigOperation) {
+        this.DesigOperation=DesigOperation;
+    }
 
     public SyntaxNode getParent() {
         return parent;
@@ -27,11 +51,46 @@ public abstract class DesignatorStatement implements SyntaxNode {
         this.line=line;
     }
 
-    public abstract void accept(Visitor visitor);
-    public abstract void childrenAccept(Visitor visitor);
-    public abstract void traverseTopDown(Visitor visitor);
-    public abstract void traverseBottomUp(Visitor visitor);
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 
-    public String toString() { return toString(""); }
-    public abstract String toString(String tab);
+    public void childrenAccept(Visitor visitor) {
+        if(Designator!=null) Designator.accept(visitor);
+        if(DesigOperation!=null) DesigOperation.accept(visitor);
+    }
+
+    public void traverseTopDown(Visitor visitor) {
+        accept(visitor);
+        if(Designator!=null) Designator.traverseTopDown(visitor);
+        if(DesigOperation!=null) DesigOperation.traverseTopDown(visitor);
+    }
+
+    public void traverseBottomUp(Visitor visitor) {
+        if(Designator!=null) Designator.traverseBottomUp(visitor);
+        if(DesigOperation!=null) DesigOperation.traverseBottomUp(visitor);
+        accept(visitor);
+    }
+
+    public String toString(String tab) {
+        StringBuffer buffer=new StringBuffer();
+        buffer.append(tab);
+        buffer.append("DesignatorStatement(\n");
+
+        if(Designator!=null)
+            buffer.append(Designator.toString("  "+tab));
+        else
+            buffer.append(tab+"  null");
+        buffer.append("\n");
+
+        if(DesigOperation!=null)
+            buffer.append(DesigOperation.toString("  "+tab));
+        else
+            buffer.append(tab+"  null");
+        buffer.append("\n");
+
+        buffer.append(tab);
+        buffer.append(") [DesignatorStatement]");
+        return buffer.toString();
+    }
 }
