@@ -227,19 +227,21 @@ public class CodeGenerator extends VisitorAdaptor {
 			}
 		}
 		
+		if(arrayIndexFlag)
+		{
+			Obj ind = new Obj(Obj.Var,"$index$", Tab.intType);
+			
+			Code.store(ind);
+			Code.load(currentDesignator);
+			Code.load(ind);
+		}
+		
 		/*
 		 * Ako  je desig[index] i ako je ovj designator factor, onda treba da dohvatimo tu vrednost!
 		 * Na EXP STEKU SE VEC NALAZI VR INDEXA
 		 */
 		if(desigFactorArray)
 		{
-			report_info("OVDE SAM NA LINIJI "+ desig.getLine()+ "       " + currentDesignator.getName(), null);
-			Obj qqq = new Obj(Obj.Var, "%fff%", Tab.intType);
-			
-			Code.store(qqq);
-			
-			Code.load(desig.obj);
-			Code.load(qqq);
 			
 			Code.put(Code.aload);
 			
@@ -255,13 +257,7 @@ public class CodeGenerator extends VisitorAdaptor {
 		 */
 		if(desigReadArray)
 		{
-			Obj ind = new Obj(Obj.Var,"$index$", Tab.intType);
-			
-			Code.store(ind);
-			Code.load(currentDesignator);
-			Code.load(ind);
-			
-			Code.put(Code.aload);
+			//Code.put(Code.aload);
 		}
 		
 		
@@ -291,17 +287,6 @@ public class CodeGenerator extends VisitorAdaptor {
 				Struct poms = new Struct(Struct.Array, ds.getDesignator().obj.getType().getElemType());
 				Obj pom = new Obj(Obj.Elem, ds.getDesignator().obj.getName(), poms);
 				
-				Obj pom1= new Obj(Obj.Var, "$$$1", Tab.intType);
-				Obj pom2 = new Obj(Obj.Var, "$$$2", Tab.intType);
-				
-				Code.store(pom1);
-				
-				Code.store(pom2);
-
-				Code.load(ds.getDesignator().obj);
-				
-				Code.load(pom2);
-				Code.load(pom1);
 				
 				Code.store(pom);
 			}
@@ -322,9 +307,12 @@ public class CodeGenerator extends VisitorAdaptor {
 			break;
 		case 3:
 			break;
+			
 		}
-			typeDesigStmtOper 		= -1;
-			desigStatmArray = false;
+		
+		
+		typeDesigStmtOper 		= -1;
+		desigStatmArray 		= false;
 		
 		
 	}

@@ -2,7 +2,7 @@ program MJProgram
 	int x; int y;
 	int z[];
 	int a,b,c;
-	const int f = 5;
+	const int f = 11;
 	const char d = 'd';
 {
 	
@@ -18,7 +18,7 @@ program MJProgram
 
 		//y = 2+1 * (6+1);
 		//y = 5* (5 - 7) +k();	
-		y =  -5;
+		y = f;
 		y--;
 		
 		x = -y;
@@ -39,13 +39,14 @@ program MJProgram
 		print(x);
 		z = new int[10];
 		
-		z[6] = f;
 		
 		z[7] = 66;
+		z[6] = f;
 		
+		z[7] = z[6];
 		y = z[7];
 		
-		print(y);
+		print(z[7]);
 		
 	}
 }

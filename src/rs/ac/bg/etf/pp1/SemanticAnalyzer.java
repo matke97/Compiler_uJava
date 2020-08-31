@@ -425,15 +425,15 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     	
     	if((adp.getParent().getParent()).getClass() == DesignatorStatement.class)
     	{
-    		
     		arrayDesignatorStatement = true;
+    		
     	}else if((adp.getParent().getParent()).getClass() == ReadStatement.class)
     	{
     		arrayRead = true;
     	}
     	
     	pristupNizu = true;
-    	//if((adp.getParent().getParent().getParent()))
+    	
     	arrayDesigFlag = true;
     }
     
