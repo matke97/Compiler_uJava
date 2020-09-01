@@ -432,8 +432,9 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     	{
     		arrayRead = true;
     	}
-    	
-    	pristupNizu = true;
+    	else if((adp.getParent().getParent()).getClass() == DesignatorFactor.class) {
+    		pristupNizu = true;
+    	}
     	
     	arrayDesigFlag = true;
     }
@@ -458,7 +459,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     public void visit(FactorTerm facTerm)
     {
     	facTerm.struct = facTerm.getFactor().struct;
-    	factorType  = facTerm.getFactor().struct;
+    	
     }
     
     public void visit(MulopTerm mulopTerm)
@@ -558,7 +559,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     	desigStatementOperation = -1;
 
     	arrayDesignatorStatement= false;
-    	pristupNizu				= false;
+    	
     	
     	newTypeFactorFlag 		= false;
     	
