@@ -266,7 +266,7 @@ ConditionOpt ::= (OptionalCondition) Condition
 DesignatorStatement ::= (DesignatorStatement) Designator:designator DesigOperation ;
 
 
-DesigOperation ::= (DesigOperationAss) Assignop Expr
+DesigOperation ::= (DesigOperationAss) Assignop Expr:expr
 					|
 					(DesigOperationInc) INC
 					|

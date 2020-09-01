@@ -66,16 +66,30 @@ public class CodeGenerator extends VisitorAdaptor {
 	public void visit(ReadStatement rs)
 	{
 		Obj designObj = currentDesignator;
-		report_info("aAAAA" + designObj.getName(), null);
-		if (designObj.getType().getKind()==Struct.Int)
+		
+		if (designObj.getType().getKind()==Struct.Int  ||
+				(designObj.getType().getKind() == Struct.Array && designObj.getType().getElemType().getKind() == Struct.Int))
 		{
 			Code.put(Code.read);
-		}else if(designObj.getType().getKind()==Struct.Char)
+		}
+		else if(designObj.getType().getKind()==Struct.Char || 
+				(designObj.getType().getKind() == Struct.Array && designObj.getType().getElemType().getKind() == Struct.Char))
 		{
 			Code.put(Code.bread);
 		}
 		
-		Code.store(rs.getDesignator().obj);
+		if(designObj.getType().getKind() == Struct.Array)
+		{
+			Obj ds = rs.getDesignator().obj;
+			Struct poms = new Struct(Struct.Array, ds.getType().getElemType());
+			Obj pom = new Obj(Obj.Elem, ds.getName(), poms);
+			
+			
+			Code.store(pom);
+		}else
+		{
+			Code.store(rs.getDesignator().obj);
+		}
 	}
 	
 	public void visit(NumFactor nf)

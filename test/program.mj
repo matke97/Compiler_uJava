@@ -28,7 +28,7 @@ program MJProgram
 		
 		
 		
-		//read(y);
+		read(y);
 		
 		//y = z[2];
 		
@@ -39,14 +39,16 @@ program MJProgram
 		print(x);
 		z = new int[10];
 		
-		
-		z[7] = 66;
-		z[6] = f;
-		
-		z[7] = z[6];
+		z[1] = 5;
+		z[5] = 7;
+		read(z[y]);
+		read(z[z[z[1]]]);
+		z[6] = f + z[7];
+
 		y = z[7];
 		
 		print(z[7]);
+		print(z[6]);
 		
 	}
 }

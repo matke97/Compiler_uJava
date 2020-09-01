@@ -24,6 +24,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	boolean arrayDesignatorStatement 	= false; //KADA IMAMO DESIG STaTEMNTU I DESIGNATOR JE PRISTUP ELEMENTU NIZA
     boolean pristupNizu 				= false;
     boolean arrayRead 					= false;
+    boolean newTypeFactorFlag 			= false; 
 	int desigStatementOperation = -1; //operacija koj se desava sa dstm
 	Struct desigStatementExpr 	= null;
 	//Struct factorType 			= null;
@@ -497,17 +498,33 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     	switch(desigStatementOperation)
     	{
     	case 1: //=====DS ASSIGMENT===========
-    		
+    		report_info("gledaj " + desigStatementExpr.getKind() + ": some",null);
     		if(!arrayDesignatorStatement && desigStatementExpr.getKind() != desig.getType().getKind())
     		{
     			report_error("Greska na liniji " + ds.getLine() + ": Nekompatibilni tipvoi u dodeli vrednosti",null);
-    		}/*else if(arrayDesignatorStatement && desigStatementExpr.getKind() != (desig.getType().getElemType()).getKind())
+    		}
+    		else if(newTypeFactorFlag)
+    		{
+    			
+    			if(factorType.getKind() == Struct.Array)
+    			{
+    				if(desig.getType().getKind() != Struct.Array)
+    				{
+    					report_error("Greska na liniji " + ds.getLine() + ": Nekompatibilni tipvoi u dodeli vrednosti",null);
+    				}else if(desig.getType().getElemType().getKind() != factorType.getElemType().getKind())
+    				{
+    					report_error("Greska na liniji " + ds.getLine() + ": Nekompatibilni tipvoi u dodeli vrednosti",null);
+    				}
+    			}
+    		}
+    		/*else if(arrayDesignatorStatement && desigStatementExpr.getKind() != (desig.getType().getElemType()).getKind())
     		{
     			report_error("Greska na liniji " + ds.getLine() + ": Nekompatibilni tipvoi u dodeli vrednosti",null);
-    		}*/
-    		
+    		}
+    		*/
     		
     		//========END DS ASSIGMENT=========
+        	desigStatementExpr 		= null;
     		break;
     		
     	case 2://========INCREMENT=========
@@ -539,9 +556,11 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     	}
     	
     	desigStatementOperation = -1;
-    	desigStatementExpr 		= null;
+
     	arrayDesignatorStatement= false;
     	pristupNizu				= false;
+    	
+    	newTypeFactorFlag 		= false;
     	
     }
     
@@ -600,6 +619,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     		report_error("Greska na liniji " + nf.getLine() + " Kreiranje objekata i nizova moguce samo za osnovne tipove.",null);
     	}else
     	{
+    		newTypeFactorFlag = true;
     		if(newArrayFlag)
     		{
     			

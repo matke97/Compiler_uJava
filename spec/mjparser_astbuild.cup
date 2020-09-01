@@ -310,7 +310,7 @@ ConditionOpt ::= (OptionalCondition) Condition:C1 {: RESULT=new OptionalConditio
 DesignatorStatement ::= (DesignatorStatement) Designator:designator DesigOperation:D1 {: RESULT=new DesignatorStatement(designator, D1); RESULT.setLine(designatorleft); :} ;
 
 
-DesigOperation ::= (DesigOperationAss) Assignop:A1 Expr:E2 {: RESULT=new DesigOperationAss(A1, E2); RESULT.setLine(A1left); :}
+DesigOperation ::= (DesigOperationAss) Assignop:A1 Expr:expr {: RESULT=new DesigOperationAss(A1, expr); RESULT.setLine(A1left); :}
 					|
 					(DesigOperationInc) INC {: RESULT=new DesigOperationInc(); :}
 					|
