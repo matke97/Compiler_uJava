@@ -31,8 +31,8 @@ program test301
 		print(niz[2]);
 		
 		read(bodovi);
-		niz[2] += bodovi *= 2;
-		niz[2]++;
+		//niz[2] += bodovi *= 2;
+		//niz[2]++;
 		print(niz[2]);
 		
 		

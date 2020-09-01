@@ -73,7 +73,7 @@ nonterminal ArrExprOpt, ActualParamList, DesignatorList, DesignatorPart;
 nonterminal Assignop, Relop, Addop, Mulop, AddopRight, MulopRight, AddopLeft, MulopLeft;
 nonterminal MinusEx;
 //za semantickuanal!
-nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgName, Program, MethodDecl, MethodTypeName, Designator, ClassName, DesignatorLeft;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgName, Program, MethodDecl, MethodTypeName, Designator, ClassName;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, Term, Factor, Expr;
 
 //precedence
@@ -263,10 +263,9 @@ ConditionOpt ::= (OptionalCondition) Condition
 					(NoCondition) /* epsilon */
 					;
 
-DesignatorStatement ::= (DesignatorStatement) DesignatorLeft DesigOperation ;
+DesignatorStatement ::= (DesignatorStatement) Designator:desig DesigOperation ;
 
-DesignatorLeft ::= (DesignatorLeft) Designator:desig
-				;
+
 
 DesigOperation ::= (DesigOperationAss) Assignop Expr:expr
 					|

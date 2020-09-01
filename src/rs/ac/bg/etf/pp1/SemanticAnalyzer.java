@@ -426,7 +426,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     			report_error("Greska na liniji: " + adp.getLine() + ":Index mora biti tipa int", null);
     		}
     	
-    	if((adp.getParent().getParent()).getClass() == DesignatorLeft.class)
+    	if((adp.getParent().getParent()).getClass() == DesignatorStatement.class)
     	{
     		arrayDesignatorStatement = true;
     		
@@ -434,10 +434,16 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     	{
     		arrayRead = true;
     	}
+
     	else if((adp.getParent().getParent()).getClass() == DesignatorFactor.class)
     	{
     		pristupNizu = true;
     	}
+
+    	else if((adp.getParent().getParent()).getClass() == DesignatorFactor.class) {
+    		pristupNizu = true;
+    	}
+
     	arrayDesigFlag = true;
     }
     
@@ -462,7 +468,9 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     public void visit(FactorTerm facTerm)
     {
     	facTerm.struct = facTerm.getFactor().struct;
+
     	//factorType  = facTerm.getFactor().struct;
+
     }
     
     public void visit(MulopTerm mulopTerm)
@@ -472,41 +480,13 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     }
     
     
-    public void visit(DesignatorLeft dl)
-    {
-    	designatorLeftObj = dl.getDesignator().obj;
-    	//arrayDesignatorStatement = true;
-    }
+
     
     public void visit(DesigOperationAss dop)
     {
     	desigStatementOperation = 1;
 
     	report_info("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" + dop.getExpr().struct, null);
-    	if(newTypeFactorFlag)
-		{
-			
-			if(factorType.getKind() == Struct.Array)
-			{
-				if(designatorLeftObj.getType().getKind() != Struct.Array)
-				{
-					report_error("Greska na liniji " + dop.getLine() + ": Nekompatibilni tipvoi u dodeli vrednosti",null);
-					
-				}else if(designatorLeftObj.getType().getElemType().getKind() != factorType.getElemType().getKind())
-				{
-					report_error("Greska na liniji " + dop.getLine() + ": Nekompatibilni tipvoi u dodeli vrednosti",null);
-				}
-			}
-		}
-    	
-    	else if(arrayDesignatorStatement && ((designatorLeftObj.getType()).getElemType()).getKind() != dop.getExpr().struct.getKind())
-    	{
-    		report_error("Greska na liniji " + dop.getLine() + ": Nekompatibilni tipvoi u dodeli vrednosti",null);
-    	}
-    	else if(!arrayDesignatorStatement && designatorLeftObj.getType().getKind() != dop.getExpr().struct.getKind())
-    	{
-    		report_error("Greska na liniji " + dop.getLine() + ": Nekompatibilni tipvoi u dodeli vrednosti",null);
-    	}
     	
     	//designatorLeftObj 		= null;
     	
@@ -584,7 +564,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     	
     	designatorLeftObj 		= null;
     	arrayDesignatorStatement= false;
-    	pristupNizu				= false;
+    	
     	
     	newTypeFactorFlag 		= false;
     	

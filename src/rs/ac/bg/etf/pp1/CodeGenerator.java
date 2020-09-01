@@ -290,7 +290,7 @@ public class CodeGenerator extends VisitorAdaptor {
 	
 	public void visit( DesignatorStatement ds )
 	{
-		Obj desig = ds.getDesignatorLeft().getDesignator().obj;
+		Obj desig = ds.getDesignator().obj;
 		//report_info("AAAAAAAAAAA1121323423  --> "+ desig.getName() + " na liniji:"+ ds.getLine(), null);
 		switch(typeDesigStmtOper) //PROMENI FLAG ILI CODE OPERACIJE
 		{
