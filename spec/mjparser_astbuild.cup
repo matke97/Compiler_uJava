@@ -117,7 +117,7 @@ nonterminal AddopLeft AddopLeft;
 nonterminal MulopLeft MulopLeft;
 nonterminal MinusEx MinusEx;
 //za semantickuanal!
-nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgName, Program, MethodDecl, MethodTypeName, Designator, ClassName;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgName, Program, MethodDecl, MethodTypeName, Designator, ClassName, DesignatorLeft;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, Term, Factor, Expr;
 
 //precedence
@@ -307,8 +307,10 @@ ConditionOpt ::= (OptionalCondition) Condition:C1 {: RESULT=new OptionalConditio
 					(NoCondition) {: RESULT=new NoCondition(); :} /* epsilon */
 					;
 
-DesignatorStatement ::= (DesignatorStatement) Designator:designator DesigOperation:D1 {: RESULT=new DesignatorStatement(designator, D1); RESULT.setLine(designatorleft); :} ;
+DesignatorStatement ::= (DesignatorStatement) DesignatorLeft:D1 DesigOperation:D2 {: RESULT=new DesignatorStatement(D1, D2); RESULT.setLine(D1left); :} ;
 
+DesignatorLeft ::= (DesignatorLeft) Designator:desig {: RESULT=new DesignatorLeft(desig); RESULT.setLine(desigleft); :}
+				;
 
 DesigOperation ::= (DesigOperationAss) Assignop:A1 Expr:expr {: RESULT=new DesigOperationAss(A1, expr); RESULT.setLine(A1left); :}
 					|

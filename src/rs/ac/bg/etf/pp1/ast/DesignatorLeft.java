@@ -5,11 +5,15 @@
 
 package rs.ac.bg.etf.pp1.ast;
 
-public class ReadStatement extends Statement {
+public class DesignatorLeft implements SyntaxNode {
+
+    private SyntaxNode parent;
+    private int line;
+    public rs.etf.pp1.symboltable.concepts.Obj obj = null;
 
     private Designator Designator;
 
-    public ReadStatement (Designator Designator) {
+    public DesignatorLeft (Designator Designator) {
         this.Designator=Designator;
         if(Designator!=null) Designator.setParent(this);
     }
@@ -20,6 +24,22 @@ public class ReadStatement extends Statement {
 
     public void setDesignator(Designator Designator) {
         this.Designator=Designator;
+    }
+
+    public SyntaxNode getParent() {
+        return parent;
+    }
+
+    public void setParent(SyntaxNode parent) {
+        this.parent=parent;
+    }
+
+    public int getLine() {
+        return line;
+    }
+
+    public void setLine(int line) {
+        this.line=line;
     }
 
     public void accept(Visitor visitor) {
@@ -43,7 +63,7 @@ public class ReadStatement extends Statement {
     public String toString(String tab) {
         StringBuffer buffer=new StringBuffer();
         buffer.append(tab);
-        buffer.append("ReadStatement(\n");
+        buffer.append("DesignatorLeft(\n");
 
         if(Designator!=null)
             buffer.append(Designator.toString("  "+tab));
@@ -52,7 +72,7 @@ public class ReadStatement extends Statement {
         buffer.append("\n");
 
         buffer.append(tab);
-        buffer.append(") [ReadStatement]");
+        buffer.append(") [DesignatorLeft]");
         return buffer.toString();
     }
 }

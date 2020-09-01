@@ -26,8 +26,10 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     boolean arrayRead 					= false;
     boolean newTypeFactorFlag 			= false; 
 	int desigStatementOperation = -1; //operacija koj se desava sa dstm
-	Struct desigStatementExpr 	= null;
-	//Struct factorType 			= null;
+
+
+	Obj designatorLeftObj 					= null;
+	
 	int nVars;
 	
 	int numClass = 0, 	numMethod = 0, 	numGlobalVar = 0 ,	numConst = 0, 	numGlobalArray = 0;
@@ -424,7 +426,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     			report_error("Greska na liniji: " + adp.getLine() + ":Index mora biti tipa int", null);
     		}
     	
-    	if((adp.getParent().getParent()).getClass() == DesignatorStatement.class)
+    	if((adp.getParent().getParent()).getClass() == DesignatorLeft.class)
     	{
     		arrayDesignatorStatement = true;
     		
@@ -432,24 +434,26 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     	{
     		arrayRead = true;
     	}
-    	
-    	pristupNizu = true;
-    	
+    	else if((adp.getParent().getParent()).getClass() == DesignatorFactor.class)
+    	{
+    		pristupNizu = true;
+    	}
     	arrayDesigFlag = true;
     }
     
     public void visit(DesignatorFactor desigfac)
     {
     	//desigfac.struct = currentDesigObj.getType();
-    	Struct s;
+    	Obj o = desigfac.getDesignator().obj;
+    	Struct s = o.getType();
+    	
     	if(pristupNizu)
     	{
-    		s = desigfac.getDesignator().obj.getType().getElemType();
     		
-    	}else
-    	{
-    		s = desigfac.getDesignator().obj.getType();
+    		s = desigfac.getDesignator().obj.getType().getElemType();
+ 	
     	}
+    	
     	desigfac.struct = s;
     	factorType 		= s;
     	
@@ -458,20 +462,53 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     public void visit(FactorTerm facTerm)
     {
     	facTerm.struct = facTerm.getFactor().struct;
-    	factorType  = facTerm.getFactor().struct;
+    	//factorType  = facTerm.getFactor().struct;
     }
     
     public void visit(MulopTerm mulopTerm)
     {
     	mulopTerm.struct = mulopTerm.getFactor().struct;
+    	//factorType		 = mulopTerm.getFactor().struct;
     }
     
+    
+    public void visit(DesignatorLeft dl)
+    {
+    	designatorLeftObj = dl.getDesignator().obj;
+    	//arrayDesignatorStatement = true;
+    }
     
     public void visit(DesigOperationAss dop)
     {
     	desigStatementOperation = 1;
+
+    	report_info("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" + dop.getExpr().struct, null);
+    	if(newTypeFactorFlag)
+		{
+			
+			if(factorType.getKind() == Struct.Array)
+			{
+				if(designatorLeftObj.getType().getKind() != Struct.Array)
+				{
+					report_error("Greska na liniji " + dop.getLine() + ": Nekompatibilni tipvoi u dodeli vrednosti",null);
+					
+				}else if(designatorLeftObj.getType().getElemType().getKind() != factorType.getElemType().getKind())
+				{
+					report_error("Greska na liniji " + dop.getLine() + ": Nekompatibilni tipvoi u dodeli vrednosti",null);
+				}
+			}
+		}
     	
-    	desigStatementExpr = dop.getExpr().struct;
+    	else if(arrayDesignatorStatement && ((designatorLeftObj.getType()).getElemType()).getKind() != dop.getExpr().struct.getKind())
+    	{
+    		report_error("Greska na liniji " + dop.getLine() + ": Nekompatibilni tipvoi u dodeli vrednosti",null);
+    	}
+    	else if(!arrayDesignatorStatement && designatorLeftObj.getType().getKind() != dop.getExpr().struct.getKind())
+    	{
+    		report_error("Greska na liniji " + dop.getLine() + ": Nekompatibilni tipvoi u dodeli vrednosti",null);
+    	}
+    	
+    	//designatorLeftObj 		= null;
     	
     	
     }
@@ -492,39 +529,27 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     }
     public void visit(DesignatorStatement ds)
     {
-    	Obj desig = ds.getDesignator().obj;
+    	Obj desig = ds.getDesignatorLeft().getDesignator().obj;
     	//PAZI MORAS ZA ARRAY
     	//report_info("ASASASDASD: "+ ds.getDesignator().obj.getName(),null);
     	switch(desigStatementOperation)
     	{
     	case 1: //=====DS ASSIGMENT===========
-    		report_info("gledaj " + desigStatementExpr.getKind() + ": some",null);
+    		/*report_info("gledaj " + desigStatementExpr.getKind() + ": some",null);
     		if(!arrayDesignatorStatement && desigStatementExpr.getKind() != desig.getType().getKind())
     		{
     			report_error("Greska na liniji " + ds.getLine() + ": Nekompatibilni tipvoi u dodeli vrednosti",null);
     		}
-    		else if(newTypeFactorFlag)
-    		{
-    			
-    			if(factorType.getKind() == Struct.Array)
-    			{
-    				if(desig.getType().getKind() != Struct.Array)
-    				{
-    					report_error("Greska na liniji " + ds.getLine() + ": Nekompatibilni tipvoi u dodeli vrednosti",null);
-    				}else if(desig.getType().getElemType().getKind() != factorType.getElemType().getKind())
-    				{
-    					report_error("Greska na liniji " + ds.getLine() + ": Nekompatibilni tipvoi u dodeli vrednosti",null);
-    				}
-    			}
-    		}
-    		/*else if(arrayDesignatorStatement && desigStatementExpr.getKind() != (desig.getType().getElemType()).getKind())
+    		else 
+    		else if(arrayDesignatorStatement && desigStatementExpr.getKind() != (desig.getType().getElemType()).getKind())
     		{
     			report_error("Greska na liniji " + ds.getLine() + ": Nekompatibilni tipvoi u dodeli vrednosti",null);
     		}
-    		*/
+    		
     		
     		//========END DS ASSIGMENT=========
         	desigStatementExpr 		= null;
+        	*/
     		break;
     		
     	case 2://========INCREMENT=========
@@ -556,7 +581,8 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     	}
     	
     	desigStatementOperation = -1;
-
+    	
+    	designatorLeftObj 		= null;
     	arrayDesignatorStatement= false;
     	pristupNizu				= false;
     	

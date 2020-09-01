@@ -24,7 +24,7 @@ public class CodeGenerator extends VisitorAdaptor {
 	int typeOfAddOp 			= -1; //FLAG ZA TIP OPERACIJE(MOZE BITI +, -, +=, -=)
 	int typeOfMulOp 			= -1; //FLAG ZA TIP OPERACIJE(MOZE BITI *, /, %,..)	
 	boolean minusTermFlag		= false; //flag za hvatanje - izraza tj -TERM
-	Struct designatorStatementExpr = null;
+
 	
 	boolean desigFactorArray	   = false;
 	boolean desigReadArray		   = false;
@@ -290,29 +290,31 @@ public class CodeGenerator extends VisitorAdaptor {
 	
 	public void visit( DesignatorStatement ds )
 	{
+		Obj desig = ds.getDesignatorLeft().getDesignator().obj;
+		//report_info("AAAAAAAAAAA1121323423  --> "+ desig.getName() + " na liniji:"+ ds.getLine(), null);
 		switch(typeDesigStmtOper) //PROMENI FLAG ILI CODE OPERACIJE
 		{
 		case 1: //ASSIGN
 			if(desigStatmArray)
 			{
 				//arr[ind] = expr;
-				report_info("dodela vr elemntu niza: "+ ds.getDesignator().obj.getName() + " na liniji:"+ ds.getLine(), null);
+				report_info("dodela vr elemntu niza: "+ desig.getName() + " na liniji:"+ ds.getLine(), null);
 				
-				Struct poms = new Struct(Struct.Array, ds.getDesignator().obj.getType().getElemType());
-				Obj pom = new Obj(Obj.Elem, ds.getDesignator().obj.getName(), poms);
+				Struct poms = new Struct(Struct.Array, desig.getType().getElemType());
+				Obj pom = new Obj(Obj.Elem, desig.getName(), poms);
 				
 				
 				Code.store(pom);
 			}
-			else if(ds.getDesignator().obj.getType().getKind() == Struct.Array)
+			else if(desig.getType().getKind() == Struct.Array)
 			{
-				Code.store(ds.getDesignator().obj);
+				Code.store(desig);
 				
 			}
 			else
 			{
-				report_info("dodela vr promenljivoj: "+ ds.getDesignator().obj.getName() + " na liniji:"+ ds.getLine(), null);
-				Code.store(ds.getDesignator().obj);
+				report_info("dodela vr promenljivoj: "+ desig.getName() + " na liniji:"+ ds.getLine(), null);
+				Code.store(desig);
 			}
 			
 			break;
@@ -336,7 +338,7 @@ public class CodeGenerator extends VisitorAdaptor {
 	public void visit(DesigOperationAss dopa)
 	{
 		typeDesigStmtOper 		= 1;
-		designatorStatementExpr = dopa.getExpr().struct;
+		
 		
 	}
 	

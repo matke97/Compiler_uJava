@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 1/8/2020 15:38:14
+// 1/8/2020 15:50:37
 
 
 package rs.ac.bg.etf.pp1.ast;
@@ -9,22 +9,22 @@ public class DesignatorStatement implements SyntaxNode {
 
     private SyntaxNode parent;
     private int line;
-    private Designator Designator;
+    private DesignatorLeft DesignatorLeft;
     private DesigOperation DesigOperation;
 
-    public DesignatorStatement (Designator Designator, DesigOperation DesigOperation) {
-        this.Designator=Designator;
-        if(Designator!=null) Designator.setParent(this);
+    public DesignatorStatement (DesignatorLeft DesignatorLeft, DesigOperation DesigOperation) {
+        this.DesignatorLeft=DesignatorLeft;
+        if(DesignatorLeft!=null) DesignatorLeft.setParent(this);
         this.DesigOperation=DesigOperation;
         if(DesigOperation!=null) DesigOperation.setParent(this);
     }
 
-    public Designator getDesignator() {
-        return Designator;
+    public DesignatorLeft getDesignatorLeft() {
+        return DesignatorLeft;
     }
 
-    public void setDesignator(Designator Designator) {
-        this.Designator=Designator;
+    public void setDesignatorLeft(DesignatorLeft DesignatorLeft) {
+        this.DesignatorLeft=DesignatorLeft;
     }
 
     public DesigOperation getDesigOperation() {
@@ -56,18 +56,18 @@ public class DesignatorStatement implements SyntaxNode {
     }
 
     public void childrenAccept(Visitor visitor) {
-        if(Designator!=null) Designator.accept(visitor);
+        if(DesignatorLeft!=null) DesignatorLeft.accept(visitor);
         if(DesigOperation!=null) DesigOperation.accept(visitor);
     }
 
     public void traverseTopDown(Visitor visitor) {
         accept(visitor);
-        if(Designator!=null) Designator.traverseTopDown(visitor);
+        if(DesignatorLeft!=null) DesignatorLeft.traverseTopDown(visitor);
         if(DesigOperation!=null) DesigOperation.traverseTopDown(visitor);
     }
 
     public void traverseBottomUp(Visitor visitor) {
-        if(Designator!=null) Designator.traverseBottomUp(visitor);
+        if(DesignatorLeft!=null) DesignatorLeft.traverseBottomUp(visitor);
         if(DesigOperation!=null) DesigOperation.traverseBottomUp(visitor);
         accept(visitor);
     }
@@ -77,8 +77,8 @@ public class DesignatorStatement implements SyntaxNode {
         buffer.append(tab);
         buffer.append("DesignatorStatement(\n");
 
-        if(Designator!=null)
-            buffer.append(Designator.toString("  "+tab));
+        if(DesignatorLeft!=null)
+            buffer.append(DesignatorLeft.toString("  "+tab));
         else
             buffer.append(tab+"  null");
         buffer.append("\n");
