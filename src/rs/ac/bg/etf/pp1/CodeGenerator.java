@@ -19,6 +19,7 @@ public class CodeGenerator extends VisitorAdaptor {
 	Boolean FuncCallFactorFlag 	= false;
 	Boolean newArrayFlag		= false; // ako operator new kreira niz
 	Boolean desigStatmArray		= false; 
+	Boolean desigStatmArray2	= false;
 	//Boolean new
 	
 	boolean desnoAsocijativno = false;
@@ -31,6 +32,7 @@ public class CodeGenerator extends VisitorAdaptor {
 	
 	boolean desigFactorArray	   = false;
 	boolean desigReadArray		   = false;
+	boolean desigCombinedOperationArray = false;
 	
 	Obj ind = new Obj(Obj.Var,"$index$", Tab.intType);
 	
@@ -249,14 +251,10 @@ public class CodeGenerator extends VisitorAdaptor {
 		if(arrayIndexFlag)
 		{
 			//Obj ind = new Obj(Obj.Var,"$index$", Tab.intType);
-			
 			//Code.store(ind);
-			
 			Code.load(currentDesignator);
 			Code.put(Code.dup_x1);
-			
-			Code.put(Code.pop);
-			
+			Code.put(Code.pop);	
 		}
 		
 		/*
@@ -283,6 +281,14 @@ public class CodeGenerator extends VisitorAdaptor {
 			//Code.put(Code.aload);
 		}
 		
+		if(desigCombinedOperationArray)
+		{
+			// da na exp steku vec bude sledece adrNiza, index, vrednost
+			//Code.put(Code.dup2);
+			//Code.put(Code.aload);
+		}
+		
+		
 		
 		if(currentDesignator.getType().getKind() == Struct.Array && !arrayIndexFlag)
 		{
@@ -294,6 +300,7 @@ public class CodeGenerator extends VisitorAdaptor {
 		arrayIndexFlag = false;
 		desigFactorArray = false;
 		desigReadArray = false;
+		desigCombinedOperationArray = false;
 	}
 	
 	
@@ -302,16 +309,20 @@ public class CodeGenerator extends VisitorAdaptor {
 		switch(typeDesigStmtOper) //PROMENI FLAG ILI CODE OPERACIJE
 		{
 		case 1: //ASSIGN
+			
+			
 			if(desigStatmArray)
 			{
 				//arr[ind] = expr;
 				report_info("dodela vr elemntu niza: "+ ds.getDesignator().obj.getName() + " na liniji:"+ ds.getLine(), null);
 				
-				Struct poms = new Struct(Struct.Array, ds.getDesignator().obj.getType().getElemType());
-				Obj pom = new Obj(Obj.Elem, ds.getDesignator().obj.getName(), poms);
+				//Struct poms = new Struct(Struct.Array, ds.getDesignator().obj.getType().getElemType());
+				//Obj pom = new Obj(Obj.Elem, ds.getDesignator().obj.getName(), poms);
+				////Code.store(pom)
 				
 				
-				Code.store(pom);
+				Code.put(Code.astore);
+				
 			}
 			else if(ds.getDesignator().obj.getType().getKind() == Struct.Array)
 			{
@@ -370,7 +381,10 @@ public class CodeGenerator extends VisitorAdaptor {
 				
 			}
 			break;
-			
+		
+		case 4: 
+			Code.put(Code.pop);
+			break;
 		}
 		
 		
@@ -404,7 +418,10 @@ public class CodeGenerator extends VisitorAdaptor {
 			
 	}
 	
-	
+	public void visit(DesigOperationCombAss doca)
+	{
+		typeDesigStmtOper 		= 4;
+	}
 	public void visit(Assignoper aop)
 	{
 	
@@ -421,6 +438,7 @@ public class CodeGenerator extends VisitorAdaptor {
 		if(sn.getClass() == DesignatorStatement.class)
 		{
 			desigStatmArray = true;
+			
 		}
 		else if(sn.getClass() == DesignatorFactor.class)
 		{
@@ -430,6 +448,9 @@ public class CodeGenerator extends VisitorAdaptor {
 		else if(sn.getClass() == ReadStatement.class)
 		{
 			desigReadArray  = true;
+		}else if(sn instanceof CombOperationFactor)
+		{
+			desigCombinedOperationArray = true;
 		}
 		
 	}
@@ -491,7 +512,6 @@ public class CodeGenerator extends VisitorAdaptor {
 			case 4:
 				break;
 			default:
-				report_info("KOmbinovani operator:",null);
 				operatori.push(typeOfAddOp);
 			}
 		}
@@ -500,17 +520,11 @@ public class CodeGenerator extends VisitorAdaptor {
 	
 	public void visit(FactorTerm ft)
 	{
-		if(desnoAsocijativno)
-		{
-			report_info("kraj obrade uhuhuhuhuh0", null);
-		}
+		
 	}
 	
 	
-	public void visis(AssignopAddOpRight dd)
-	{
-		report_info("QQQQQQQQQQQQ"  , null);
-	}
+
 	
 	public void visit(MulopTerm mulTerm)
 	{
@@ -518,7 +532,7 @@ public class CodeGenerator extends VisitorAdaptor {
 		
 		if(operatori.isEmpty())
 		{
-			report_info("JEBENA DJOALAAMULLL",null);
+			
 		}else
 		{
 			typeOfMulOp = operatori.pop();
@@ -576,22 +590,19 @@ public class CodeGenerator extends VisitorAdaptor {
 	{
 		//gledaj
 		desnoAsocijativno = true;
-		report_info("TRDESIGNATOR "  + currentDesignator.getName(), null);
-		if(currentDesignator.getType().getKind() != Struct.Array)
-		{
+		//report_info("TRDESIGNATOR "  + currentDesignator.getName(), null);
+
 			leftVar.push(currentDesignator);
-		}
+		
 		operatori.push(6);
 	}
 	
 	public void visit(SubAssigment subass)
 	{
 		desnoAsocijativno = true;
-		report_info("TRDESIGNATOR "  + currentDesignator.getName(), null);
-		if(currentDesignator.getType().getKind() != Struct.Array)
-		{
+		//report_info("TRDESIGNATOR "  + currentDesignator.getName(), null);
 			leftVar.push(currentDesignator);
-		}
+		
 		operatori.push(7);
 	}
 	
@@ -600,18 +611,17 @@ public class CodeGenerator extends VisitorAdaptor {
 	public void visit(MulAssigment mulass)
 	{
 		desnoAsocijativno = true;
-		report_info("TRDESIGNATOR "  + currentDesignator.getName(), null);
-		if(currentDesignator.getType().getKind() != Struct.Array)
-		{
+		
+
 			leftVar.push(currentDesignator);
-		}
+
 		operatori.push(8);
 	}
 	
 	public void visit(DivAssigment divass)
 	{
 		desnoAsocijativno = true;
-		report_info("TRDESIGNATOR "  + currentDesignator.getName(), null);
+		
 		if(currentDesignator.getType().getKind() != Struct.Array)
 		{
 			leftVar.push(currentDesignator);
@@ -628,5 +638,77 @@ public class CodeGenerator extends VisitorAdaptor {
 			leftVar.push(currentDesignator);
 		}
 		operatori.push(10);
+	}
+	
+	
+	/*
+	 * operVal:
+	 * += - 6
+	 * -= - 7
+	 * *= - 8
+	 * /= - 9
+	 * %= - 10
+	 */
+	public void visit(ExprCombined ec)
+	{
+		while(!leftVar.isEmpty())
+		{
+			Obj trenutni = leftVar.pop();
+			Integer a = operatori.pop();
+			if(trenutni.getType().getKind() == Struct.Array)
+			{
+				Code.put(Code.dup_x2); // za vrednost
+				Code.put(Code.pop);
+				
+				Code.put(Code.dup_x2); // za index niza
+				Code.put(Code.aload);
+				
+			}
+			
+			switch(a)
+			{
+			case 6:
+				Code.put(Code.add);
+				break;
+				
+			case 7:
+				Code.put(Code.sub);
+				break;
+				
+			case 8:
+				Code.put(Code.mul);
+				break;
+				
+			case 9:
+				Code.put(Code.div);
+				break;
+				
+			case 10:
+				Code.put(Code.rem);
+				break;
+			}
+			
+			
+			
+			if(trenutni.getType().getKind() == Struct.Array)
+			{
+				Code.put(Code.dup_x1);
+				Code.load(trenutni);
+				Code.put(Code.dup_x2);
+				Code.put(Code.pop);
+				if(trenutni.getType().getKind() == Struct.Char)
+				{
+					Code.put(Code.bastore);
+				}else
+				{
+					Code.put(Code.astore);
+				}
+			}else
+			{
+				Code.put(Code.dup);
+				Code.store(trenutni);
+				
+			}
+		}
 	}
 }

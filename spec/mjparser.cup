@@ -65,16 +65,20 @@ nonterminal ConstType;
 nonterminal VarList, VarPart, VarDeclOpt;
 nonterminal MethodDeclListOpt, Extend, AbstractClassName;
 nonterminal AbstractMethodList, AbstractClassMethods, AbsRegularMethod, AbstractMethodDecl;
+
+
 nonterminal RetType, FormParsOpt, FormPars, StatementList, Statement, FormParsPart, FormParsList;
 nonterminal DesignatorStatement, Condition, ElseOptStatement, DesignatorStmtOpt, ConditionOpt, RetVal, NumConstOpt;
 nonterminal DesigOperation, ActParsOptional, ActPars, ConditionList, CondTerm, CondTermList, CondFact, ExprMinusPlus, ExprList;
 nonterminal ArrExprOpt, ActualParamList, DesignatorList, DesignatorPart;
-
+nonterminal rs.etf.pp1.symboltable.concepts.Struct CombOperationFactor;
 nonterminal Assignop, Relop, Addop, Mulop, AddopRight, MulopRight, AddopLeft, MulopLeft;
 nonterminal MinusEx;
 //za semantickuanal!
 nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgName, Program, MethodDecl, MethodTypeName, Designator, ClassName;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, Term, Factor, Expr;
+
+ nonterminal CombOperation;
 
 //precedence
 precedence left ELSE;
@@ -273,12 +277,14 @@ DesigOperation ::= (DesigOperationAss) Assignop Expr:expr
 					(DesigOperationDec) DEC
 					|
 					(DesigOperationActPar) LPAREN RPAREN
+					|
+					(DesigOperationCombAss) CombOperation Expr:expr
 					;
 ActParsOptional ::= (ActualParsOptional) ActPars
 				|
 				(NoActParsOptional) /* epsilon */
 				;		
-				
+
 Condition ::= (Condition) ConditionList
 			;
 
@@ -299,21 +305,24 @@ CondFact ::= (CondFactExpr) Expr
 		 |
 		 (CondFactExprRelop) Expr Relop Expr 
 		 ;	
+				
 
-Expr ::= (Expr)  ExprMinusPlus ExprList
+
+Expr ::=(ExprMinus) MinusEx ExprList
+		|
+		(ExprPlus) ExprList
+		|
+		(ExprCombined) CombOperationFactor
 		;
 
-ExprMinusPlus ::= (ExprMinus) MinusEx Term
-			|
-			(ExprPlus) Term
-			;
+
 			
 MinusEx ::= (MinusExp) MINUS
 		;
 		
 ExprList ::= (AddopExpr) ExprList Addop Term
 			|
-             (NoAddopExpr) /* epsilon */
+             (AddopExprTerm) Term
                ; 
 
 Term ::= (MulopTerm) Term Mulop Factor:fact
@@ -336,7 +345,7 @@ Factor ::= (DesignatorFactor) Designator:desig
 		    |
 		   (NewTypeFactor) NEW Type:typeNew ArrExprOpt
 		   ;
-		
+
 ArrExprOpt ::= (ArrayExpr) LSQPAREN Expr RSQPAREN
 			|
 			(NoArrayExprOpt) /* epsilon */
@@ -365,10 +374,6 @@ DesignatorList ::= (DotDesignPart) DOT IDENT:name
                   ;
 
 Assignop ::= (Assignoper) ASSIGN
-			|
-			(AssignopAddOpRight) AddopRight
-			|
-			(AssignopMulOpRight) MulopRight
 			;
 
 Relop ::= (EqualOp) EQUAL
@@ -395,8 +400,6 @@ AddopRight ::= (AddAssigment) ADDASSIGN
 			;
 			
 Addop ::= (AddopBasic) AddopLeft
-		|
-		(AddopAdvanced) AddopRight
 		;	
 		
 MulopLeft ::= (Muloper) MUL
@@ -413,7 +416,18 @@ MulopRight ::= (MulAssigment) MULASSIGN
 			(ModAssigment) MODUOASSIGN
 			;
 
-Mulop ::= (MulopBasic) MulopLeft
-		|
-		(MulopAdvanced) MulopRight
-		;				  
+Mulop ::= (MulopBasic) MulopLeft		
+		;	
+		
+		
+CombOperation ::= (CombOperationMul) MulopRight
+				|
+				(CombOperationAdd) AddopRight
+				;	  
+				
+
+CombOperationFactor ::=  (CombOperationFactorRecursive) Designator CombOperation CombOperationFactor
+					|
+					(CombinedOperationOne) Designator CombOperation ExprList
+					;
+	

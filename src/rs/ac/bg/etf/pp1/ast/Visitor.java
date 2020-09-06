@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 1/8/2020 17:30:50
+// 6/8/2020 2:52:7
 
 
 package rs.ac.bg.etf.pp1.ast;
@@ -13,6 +13,7 @@ public interface Visitor {
     public void visit(ProgDeclPart ProgDeclPart);
     public void visit(Relop Relop);
     public void visit(Assignop Assignop);
+    public void visit(CombOperationFactor CombOperationFactor);
     public void visit(ConditionList ConditionList);
     public void visit(CondTermList CondTermList);
     public void visit(MethodDeclListOpt MethodDeclListOpt);
@@ -43,11 +44,13 @@ public interface Visitor {
     public void visit(DesignatorPart DesignatorPart);
     public void visit(DesigOperation DesigOperation);
     public void visit(DesignatorStmtOpt DesignatorStmtOpt);
+    public void visit(Expr Expr);
     public void visit(DesignatorList DesignatorList);
     public void visit(Extend Extend);
     public void visit(VarDeclOpt VarDeclOpt);
     public void visit(AbsRegularMethod AbsRegularMethod);
     public void visit(ExprMinusPlus ExprMinusPlus);
+    public void visit(CombOperation CombOperation);
     public void visit(Statement Statement);
     public void visit(MulopLeft MulopLeft);
     public void visit(CondFact CondFact);
@@ -55,7 +58,10 @@ public interface Visitor {
     public void visit(MethodDeclList MethodDeclList);
     public void visit(MulopRight MulopRight);
     public void visit(ConstType ConstType);
-    public void visit(MulopAdvanced MulopAdvanced);
+    public void visit(CombinedOperationOne CombinedOperationOne);
+    public void visit(CombOperationFactorRecursive CombOperationFactorRecursive);
+    public void visit(CombOperationAdd CombOperationAdd);
+    public void visit(CombOperationMul CombOperationMul);
     public void visit(MulopBasic MulopBasic);
     public void visit(ModAssigment ModAssigment);
     public void visit(DivAssigment DivAssigment);
@@ -63,7 +69,6 @@ public interface Visitor {
     public void visit(Modoper Modoper);
     public void visit(Divoper Divoper);
     public void visit(Muloper Muloper);
-    public void visit(AddopAdvanced AddopAdvanced);
     public void visit(AddopBasic AddopBasic);
     public void visit(SubAssigment SubAssigment);
     public void visit(AddAssigment AddAssigment);
@@ -75,8 +80,6 @@ public interface Visitor {
     public void visit(GrtOp GrtOp);
     public void visit(NotEqual NotEqual);
     public void visit(EqualOp EqualOp);
-    public void visit(AssignopMulOpRight AssignopMulOpRight);
-    public void visit(AssignopAddOpRight AssignopAddOpRight);
     public void visit(Assignoper Assignoper);
     public void visit(NoDesigList NoDesigList);
     public void visit(ArrayDesignPart ArrayDesignPart);
@@ -96,12 +99,12 @@ public interface Visitor {
     public void visit(DesignatorFactor DesignatorFactor);
     public void visit(FactorTerm FactorTerm);
     public void visit(MulopTerm MulopTerm);
-    public void visit(NoAddopExpr NoAddopExpr);
+    public void visit(AddopExprTerm AddopExprTerm);
     public void visit(AddopExpr AddopExpr);
     public void visit(MinusExp MinusExp);
+    public void visit(ExprCombined ExprCombined);
     public void visit(ExprPlus ExprPlus);
     public void visit(ExprMinus ExprMinus);
-    public void visit(Expr Expr);
     public void visit(CondFactExprRelop CondFactExprRelop);
     public void visit(CondFactExpr CondFactExpr);
     public void visit(ConditionTermListOne ConditionTermListOne);
@@ -112,6 +115,7 @@ public interface Visitor {
     public void visit(Condition Condition);
     public void visit(NoActParsOptional NoActParsOptional);
     public void visit(ActualParsOptional ActualParsOptional);
+    public void visit(DesigOperationCombAss DesigOperationCombAss);
     public void visit(DesigOperationActPar DesigOperationActPar);
     public void visit(DesigOperationDec DesigOperationDec);
     public void visit(DesigOperationInc DesigOperationInc);

@@ -1,15 +1,15 @@
 // generated with ast extension for cup
 // version 0.8
-// 1/8/2020 17:30:50
+// 6/8/2020 2:52:7
 
 
 package rs.ac.bg.etf.pp1.ast;
 
-public class MulopAdvanced extends Mulop {
+public class CombOperationMul extends CombOperation {
 
     private MulopRight MulopRight;
 
-    public MulopAdvanced (MulopRight MulopRight) {
+    public CombOperationMul (MulopRight MulopRight) {
         this.MulopRight=MulopRight;
         if(MulopRight!=null) MulopRight.setParent(this);
     }
@@ -43,7 +43,7 @@ public class MulopAdvanced extends Mulop {
     public String toString(String tab) {
         StringBuffer buffer=new StringBuffer();
         buffer.append(tab);
-        buffer.append("MulopAdvanced(\n");
+        buffer.append("CombOperationMul(\n");
 
         if(MulopRight!=null)
             buffer.append(MulopRight.toString("  "+tab));
@@ -52,7 +52,7 @@ public class MulopAdvanced extends Mulop {
         buffer.append("\n");
 
         buffer.append(tab);
-        buffer.append(") [MulopAdvanced]");
+        buffer.append(") [CombOperationMul]");
         return buffer.toString();
     }
 }

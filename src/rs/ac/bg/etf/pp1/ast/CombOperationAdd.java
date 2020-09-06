@@ -1,15 +1,15 @@
 // generated with ast extension for cup
 // version 0.8
-// 1/8/2020 17:30:50
+// 6/8/2020 2:52:7
 
 
 package rs.ac.bg.etf.pp1.ast;
 
-public class AssignopAddOpRight extends Assignop {
+public class CombOperationAdd extends CombOperation {
 
     private AddopRight AddopRight;
 
-    public AssignopAddOpRight (AddopRight AddopRight) {
+    public CombOperationAdd (AddopRight AddopRight) {
         this.AddopRight=AddopRight;
         if(AddopRight!=null) AddopRight.setParent(this);
     }
@@ -43,7 +43,7 @@ public class AssignopAddOpRight extends Assignop {
     public String toString(String tab) {
         StringBuffer buffer=new StringBuffer();
         buffer.append(tab);
-        buffer.append("AssignopAddOpRight(\n");
+        buffer.append("CombOperationAdd(\n");
 
         if(AddopRight!=null)
             buffer.append(AddopRight.toString("  "+tab));
@@ -52,7 +52,7 @@ public class AssignopAddOpRight extends Assignop {
         buffer.append("\n");
 
         buffer.append(tab);
-        buffer.append(") [AssignopAddOpRight]");
+        buffer.append(") [CombOperationAdd]");
         return buffer.toString();
     }
 }

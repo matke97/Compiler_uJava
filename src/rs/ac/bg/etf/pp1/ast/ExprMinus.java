@@ -1,20 +1,20 @@
 // generated with ast extension for cup
 // version 0.8
-// 1/8/2020 17:30:49
+// 6/8/2020 2:52:6
 
 
 package rs.ac.bg.etf.pp1.ast;
 
-public class ExprMinus extends ExprMinusPlus {
+public class ExprMinus extends Expr {
 
     private MinusEx MinusEx;
-    private Term Term;
+    private ExprList ExprList;
 
-    public ExprMinus (MinusEx MinusEx, Term Term) {
+    public ExprMinus (MinusEx MinusEx, ExprList ExprList) {
         this.MinusEx=MinusEx;
         if(MinusEx!=null) MinusEx.setParent(this);
-        this.Term=Term;
-        if(Term!=null) Term.setParent(this);
+        this.ExprList=ExprList;
+        if(ExprList!=null) ExprList.setParent(this);
     }
 
     public MinusEx getMinusEx() {
@@ -25,12 +25,12 @@ public class ExprMinus extends ExprMinusPlus {
         this.MinusEx=MinusEx;
     }
 
-    public Term getTerm() {
-        return Term;
+    public ExprList getExprList() {
+        return ExprList;
     }
 
-    public void setTerm(Term Term) {
-        this.Term=Term;
+    public void setExprList(ExprList ExprList) {
+        this.ExprList=ExprList;
     }
 
     public void accept(Visitor visitor) {
@@ -39,18 +39,18 @@ public class ExprMinus extends ExprMinusPlus {
 
     public void childrenAccept(Visitor visitor) {
         if(MinusEx!=null) MinusEx.accept(visitor);
-        if(Term!=null) Term.accept(visitor);
+        if(ExprList!=null) ExprList.accept(visitor);
     }
 
     public void traverseTopDown(Visitor visitor) {
         accept(visitor);
         if(MinusEx!=null) MinusEx.traverseTopDown(visitor);
-        if(Term!=null) Term.traverseTopDown(visitor);
+        if(ExprList!=null) ExprList.traverseTopDown(visitor);
     }
 
     public void traverseBottomUp(Visitor visitor) {
         if(MinusEx!=null) MinusEx.traverseBottomUp(visitor);
-        if(Term!=null) Term.traverseBottomUp(visitor);
+        if(ExprList!=null) ExprList.traverseBottomUp(visitor);
         accept(visitor);
     }
 
@@ -65,8 +65,8 @@ public class ExprMinus extends ExprMinusPlus {
             buffer.append(tab+"  null");
         buffer.append("\n");
 
-        if(Term!=null)
-            buffer.append(Term.toString("  "+tab));
+        if(ExprList!=null)
+            buffer.append(ExprList.toString("  "+tab));
         else
             buffer.append(tab+"  null");
         buffer.append("\n");

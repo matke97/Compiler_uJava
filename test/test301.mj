@@ -29,8 +29,8 @@ program test301
 		print(bodovi); 
 		print(niz[2]);
 		
-		//read(bodovi);
-		//niz[2] += bodovi *= 2;
+		read(bodovi);
+		niz[2] += bodovi *= 2;
 		niz[2]++;
 		print(niz[2]);
 		
@@ -46,7 +46,7 @@ program test301
 		bodovi = bodovi + (pet * jedan - 1) * bodovi - (3 % 2 + 3 * 2 - 3); 
 		print(bodovi);
 		
-		niz[2] += bodovi *= 2;
+	
 	}
 }
 

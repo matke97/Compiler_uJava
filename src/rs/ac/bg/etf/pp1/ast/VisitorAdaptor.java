@@ -1,6 +1,6 @@
 // generated with ast extension for cup
 // version 0.8
-// 1/8/2020 17:30:50
+// 6/8/2020 2:52:7
 
 
 package rs.ac.bg.etf.pp1.ast;
@@ -13,6 +13,7 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(ProgDeclPart ProgDeclPart) { }
     public void visit(Relop Relop) { }
     public void visit(Assignop Assignop) { }
+    public void visit(CombOperationFactor CombOperationFactor) { }
     public void visit(ConditionList ConditionList) { }
     public void visit(CondTermList CondTermList) { }
     public void visit(MethodDeclListOpt MethodDeclListOpt) { }
@@ -43,11 +44,13 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(DesignatorPart DesignatorPart) { }
     public void visit(DesigOperation DesigOperation) { }
     public void visit(DesignatorStmtOpt DesignatorStmtOpt) { }
+    public void visit(Expr Expr) { }
     public void visit(DesignatorList DesignatorList) { }
     public void visit(Extend Extend) { }
     public void visit(VarDeclOpt VarDeclOpt) { }
     public void visit(AbsRegularMethod AbsRegularMethod) { }
     public void visit(ExprMinusPlus ExprMinusPlus) { }
+    public void visit(CombOperation CombOperation) { }
     public void visit(Statement Statement) { }
     public void visit(MulopLeft MulopLeft) { }
     public void visit(CondFact CondFact) { }
@@ -55,7 +58,10 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(MethodDeclList MethodDeclList) { }
     public void visit(MulopRight MulopRight) { }
     public void visit(ConstType ConstType) { }
-    public void visit(MulopAdvanced MulopAdvanced) { visit(); }
+    public void visit(CombinedOperationOne CombinedOperationOne) { visit(); }
+    public void visit(CombOperationFactorRecursive CombOperationFactorRecursive) { visit(); }
+    public void visit(CombOperationAdd CombOperationAdd) { visit(); }
+    public void visit(CombOperationMul CombOperationMul) { visit(); }
     public void visit(MulopBasic MulopBasic) { visit(); }
     public void visit(ModAssigment ModAssigment) { visit(); }
     public void visit(DivAssigment DivAssigment) { visit(); }
@@ -63,7 +69,6 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(Modoper Modoper) { visit(); }
     public void visit(Divoper Divoper) { visit(); }
     public void visit(Muloper Muloper) { visit(); }
-    public void visit(AddopAdvanced AddopAdvanced) { visit(); }
     public void visit(AddopBasic AddopBasic) { visit(); }
     public void visit(SubAssigment SubAssigment) { visit(); }
     public void visit(AddAssigment AddAssigment) { visit(); }
@@ -75,8 +80,6 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(GrtOp GrtOp) { visit(); }
     public void visit(NotEqual NotEqual) { visit(); }
     public void visit(EqualOp EqualOp) { visit(); }
-    public void visit(AssignopMulOpRight AssignopMulOpRight) { visit(); }
-    public void visit(AssignopAddOpRight AssignopAddOpRight) { visit(); }
     public void visit(Assignoper Assignoper) { visit(); }
     public void visit(NoDesigList NoDesigList) { visit(); }
     public void visit(ArrayDesignPart ArrayDesignPart) { visit(); }
@@ -96,12 +99,12 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(DesignatorFactor DesignatorFactor) { visit(); }
     public void visit(FactorTerm FactorTerm) { visit(); }
     public void visit(MulopTerm MulopTerm) { visit(); }
-    public void visit(NoAddopExpr NoAddopExpr) { visit(); }
+    public void visit(AddopExprTerm AddopExprTerm) { visit(); }
     public void visit(AddopExpr AddopExpr) { visit(); }
     public void visit(MinusExp MinusExp) { visit(); }
+    public void visit(ExprCombined ExprCombined) { visit(); }
     public void visit(ExprPlus ExprPlus) { visit(); }
     public void visit(ExprMinus ExprMinus) { visit(); }
-    public void visit(Expr Expr) { visit(); }
     public void visit(CondFactExprRelop CondFactExprRelop) { visit(); }
     public void visit(CondFactExpr CondFactExpr) { visit(); }
     public void visit(ConditionTermListOne ConditionTermListOne) { visit(); }
@@ -112,6 +115,7 @@ public abstract class VisitorAdaptor implements Visitor {
     public void visit(Condition Condition) { visit(); }
     public void visit(NoActParsOptional NoActParsOptional) { visit(); }
     public void visit(ActualParsOptional ActualParsOptional) { visit(); }
+    public void visit(DesigOperationCombAss DesigOperationCombAss) { visit(); }
     public void visit(DesigOperationActPar DesigOperationActPar) { visit(); }
     public void visit(DesigOperationDec DesigOperationDec) { visit(); }
     public void visit(DesigOperationInc DesigOperationInc) { visit(); }
