@@ -498,6 +498,11 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     public void visit(DesignatorStatement ds)
     {
     	Obj desig = ds.getDesignator().obj;
+    	
+    	if(desig.getKind() == Obj.Con)
+    	{
+    		report_error("Greska na liniji " + ds.getLine() + ": Zabranjena promena vrednosti konstatni.", null);
+    	}
     	//PAZI MORAS ZA ARRAY
     	//report_info("ASASASDASD: "+ ds.getDesignator().obj.getName(),null);
     	switch(desigStatementOperation)
@@ -704,6 +709,11 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     public void visit(ReadStatement rs)
     {
     	Obj desig = rs.getDesignator().obj;
+    	if(desig.getKind() == Obj.Con)
+    	{
+    		report_error("Greska na liniji "+ rs.getLine()+": Ucitavanje u konstatnu nije moguce.", null);
+    	}
+    	
     	if(arrayRead)
     	{
     		if(desig.getType().getElemType().getKind() != Struct.Int  && desig.getType().getElemType().getKind() != Struct.Char && arrayRead)
@@ -736,7 +746,10 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     {
     	//report_info("JEBEM TI MATER 2" + coo.getDesignator().obj.getName(), null);
     	coo.struct = (coo.getDesignator().obj.getType().getKind() == Struct.Array) ? coo.getDesignator().obj.getType().getElemType() : coo.getDesignator().obj.getType();
-    	
+    	if(coo.getDesignator().obj.getKind() == Obj.Con)
+    	{
+    		report_error("Greska na liniji " + coo.getLine() + " Zabranjena je dodela vrednosti konstanti", null);
+    	}
     	if(newTypeFactorFlag)
     	{
     		report_error("Greska na liniji " + coo.getLine() + " Kombinovani operator dodele ne moze se koristiti sa operarorom new", null);
