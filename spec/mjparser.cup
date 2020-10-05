@@ -53,7 +53,7 @@ terminal ADDASSIGN, SUBASSIGN, MULASSIGN, DIVASSIGN, MODUOASSIGN;
 
 terminal String IDENT;
 terminal Integer NUMBER;
-terminal Boolean BOOL; /*Boolean*/
+terminal Integer BOOL; /*Boolean*/
 terminal Character CHAR;
 
 

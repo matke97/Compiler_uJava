@@ -1,23 +1,23 @@
 // generated with ast extension for cup
 // version 0.8
-// 6/8/2020 2:52:6
+// 16/8/2020 15:16:52
 
 
 package rs.ac.bg.etf.pp1.ast;
 
 public class BoolFactor extends Factor {
 
-    private Boolean fact;
+    private Integer fact;
 
-    public BoolFactor (Boolean fact) {
+    public BoolFactor (Integer fact) {
         this.fact=fact;
     }
 
-    public Boolean getFact() {
+    public Integer getFact() {
         return fact;
     }
 
-    public void setFact(Boolean fact) {
+    public void setFact(Integer fact) {
         this.fact=fact;
     }
 

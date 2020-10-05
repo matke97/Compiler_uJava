@@ -1,23 +1,23 @@
 // generated with ast extension for cup
 // version 0.8
-// 6/8/2020 2:52:6
+// 16/8/2020 15:16:51
 
 
 package rs.ac.bg.etf.pp1.ast;
 
 public class BooleanConst extends ConstType {
 
-    private Boolean boolConst;
+    private Integer boolConst;
 
-    public BooleanConst (Boolean boolConst) {
+    public BooleanConst (Integer boolConst) {
         this.boolConst=boolConst;
     }
 
-    public Boolean getBoolConst() {
+    public Integer getBoolConst() {
         return boolConst;
     }
 
-    public void setBoolConst(Boolean boolConst) {
+    public void setBoolConst(Integer boolConst) {
         this.boolConst=boolConst;
     }
 

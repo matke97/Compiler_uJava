@@ -128,7 +128,7 @@ public class CodeGenerator extends VisitorAdaptor {
 		Obj con = Tab.insert(Obj.Con, "$", bf.struct);
 		con.setLevel(0);
 		
-		con.setAdr(bf.getFact() ? 1 : 0);
+		con.setAdr(bf.getFact());
 		
 		Code.load(con);
 	}

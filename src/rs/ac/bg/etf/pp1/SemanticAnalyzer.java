@@ -139,6 +139,10 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     		report_error("Greska na liniji "+ print.getLine()+": Izraz mora biti int ili char tipa", null);
 		}
     	
+    	if(currentMethod != null && "main".equals(currentMethod.getName()))
+    	{
+    		numStatementMain++;
+    	}
 	}
     
     /**
@@ -175,6 +179,14 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		log.info(numFunctionCallMain+"    function calls in main");
     }
     
+    public void visit(DesignatorStatementStatement dss)
+    {
+    	if(currentMethod != null && "main".equals(currentMethod.getName()))
+    	{
+    		numStatementMain++;
+    	}
+    		
+    }
     //for vardecl
     /**
      * part- contains IDENT as variablename
@@ -189,19 +201,22 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     		return;
     	}
     	report_info("Deklarisana promenljiva:"+part.getVarName()+" tipa "+ currentType.getKind(), null);
+    	
+    	if(currentMethod != null && "main".equals(currentMethod.getName()))
+    	{
+    		numLocalVarMain++;
+    	}else
+    	{
+    		numGlobalVar++;
+    	}
+    	
     	if(currentClass != null && currentMethod == null)
     	{
     		/*field type*/
     		Tab.insert(Obj.Fld, part.getVarName(), currentType);
     	}else
     	{
-    		if(currentMethod != null)
-    		{
-    			if( currentMethod.getName() == "main" ) numLocalVarMain++;
-    		}else
-    		{
-    			numGlobalVar++;
-    		}
+    		
     		Tab.insert(Obj.Var, part.getVarName(), currentType);
     		
     	}
@@ -215,21 +230,27 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     		return;
     	}
     	report_info("Deklarisan niz:"+partArr.getVarName()+" tipa "+ currentType.getKind(), null);
+    	
+    	
     	if(currentClass != null && currentMethod == null)
     	{
     		/*field type*/
     		Tab.insert(Obj.Fld, partArr.getVarName(), new Struct(Struct.Array, currentType));
+    		
     	}else
     	{
-    		if(currentMethod != null)
-    		{
-    			if( currentMethod.getName() == "main" )numLocalArrayMain++;
-    		}else
-    		{
-    			numGlobalArray++;
-    		}
+    		
     		Tab.insert(Obj.Var, partArr.getVarName(), new Struct(Struct.Array, currentType));
     		
+    	}
+    	
+
+    	if(currentMethod != null && "main".equals(currentMethod.getName()))
+    	{
+    		numLocalArrayMain++;
+    	}else
+    	{
+    		numGlobalArray++;
     	}
     }
     
@@ -242,8 +263,14 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     	Obj typeNode = Tab.find(type.getT());
     	if(typeNode == Tab.noObj)
     	{
+    		if(type.getT().equals("bool"))
+    		{
+    			type.struct = Tab.intType;
+    		}else
+    		{
     		report_error("Nije pronadjen tip" + type.getT() + "u tabeli simbola", null);
     		type.struct = Tab.noType;
+    		}
     	}else
     	{
     		if(Obj.Type == typeNode.getKind())
@@ -303,9 +330,16 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     	Tab.chainLocalSymbols(currentMethod);
     	Tab.closeScope();
     	
+    	if(!"main".equals(currentMethod.getName()))
+    	{
+    		numMethod++;
+    	}
+    	
     	returnFound = false;
     	currentMethod = null;
     	returnType = null;
+    	
+    	
     }
     
     public void visit(ReturnStatement rtstm)
@@ -345,6 +379,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     		report_error("Greska na liniji:" + constPart.getLine()+ "Ime" + constPart.getConstName() + "je vec definisano!", null);
     		return;
     	}
+    	numConst++;
     	Obj cnst = Tab.insert(Obj.Con, constPart.getConstName(), currentType);
 
     	cnst.setAdr(constValue);
@@ -387,7 +422,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     	}
     	else
     	{
-    		constValue = bln.getBoolConst()? 1 : 0;
+    		constValue = bln.getBoolConst();
     	}
     	
     }
@@ -729,6 +764,11 @@ public class SemanticAnalyzer extends VisitorAdaptor {
   
     			report_error("Greska na liniji "+ rs.getLine()+": Izraz mora biti int ili char tipa", null);
     		}
+    	}
+    	
+    	if(currentMethod != null && "main".equals(currentMethod.getName()))
+    	{
+    		numStatementMain++;
     	}
     	
     	
