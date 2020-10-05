@@ -53,7 +53,7 @@ terminal ADDASSIGN, SUBASSIGN, MULASSIGN, DIVASSIGN, MODUOASSIGN;
 
 terminal String IDENT;
 terminal Integer NUMBER;
-terminal Boolean BOOL; /*Boolean*/
+terminal Integer BOOL; /*Boolean*/
 terminal Character CHAR;
 
 
@@ -79,6 +79,8 @@ nonterminal AbstractMethodList AbstractMethodList;
 nonterminal AbstractClassMethods AbstractClassMethods;
 nonterminal AbsRegularMethod AbsRegularMethod;
 nonterminal AbstractMethodDecl AbstractMethodDecl;
+
+
 nonterminal RetType RetType;
 nonterminal FormParsOpt FormParsOpt;
 nonterminal FormPars FormPars;
@@ -106,7 +108,7 @@ nonterminal ArrExprOpt ArrExprOpt;
 nonterminal ActualParamList ActualParamList;
 nonterminal DesignatorList DesignatorList;
 nonterminal DesignatorPart DesignatorPart;
-
+nonterminal rs.etf.pp1.symboltable.concepts.Struct CombOperationFactor;
 nonterminal Assignop Assignop;
 nonterminal Relop Relop;
 nonterminal Addop Addop;
@@ -119,6 +121,8 @@ nonterminal MinusEx MinusEx;
 //za semantickuanal!
 nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgName, Program, MethodDecl, MethodTypeName, Designator, ClassName;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, Term, Factor, Expr;
+
+ nonterminal CombOperation CombOperation;
 
 //precedence
 precedence left ELSE;
@@ -318,12 +322,14 @@ DesigOperation ::= (DesigOperationAss) Assignop:A1 Expr:expr {: RESULT=new Desig
 					(DesigOperationDec) DEC {: RESULT=new DesigOperationDec(); :}
 					|
 					(DesigOperationActPar) LPAREN RPAREN {: RESULT=new DesigOperationActPar(); :}
+					|
+					(DesigOperationCombAss) CombOperation:C1 Expr:expr {: RESULT=new DesigOperationCombAss(C1, expr); RESULT.setLine(C1left); :}
 					;
 ActParsOptional ::= (ActualParsOptional) ActPars:A1 {: RESULT=new ActualParsOptional(A1); RESULT.setLine(A1left); :}
 				|
 				(NoActParsOptional) {: RESULT=new NoActParsOptional(); :} /* epsilon */
 				;		
-				
+
 Condition ::= (Condition) ConditionList:C1 {: RESULT=new Condition(C1); RESULT.setLine(C1left); :}
 			;
 
@@ -344,21 +350,24 @@ CondFact ::= (CondFactExpr) Expr:E1 {: RESULT=new CondFactExpr(E1); RESULT.setLi
 		 |
 		 (CondFactExprRelop) Expr:E1 Relop:R2 Expr:E3 {: RESULT=new CondFactExprRelop(E1, R2, E3); RESULT.setLine(E1left); :} 
 		 ;	
+				
 
-Expr ::= (Expr)  ExprMinusPlus:E1 ExprList:E2 {: RESULT=new Expr(E1, E2); RESULT.setLine(E1left); :}
+
+Expr ::=(ExprMinus) MinusEx:M1 ExprList:E2 {: RESULT=new ExprMinus(M1, E2); RESULT.setLine(M1left); :}
+		|
+		(ExprPlus) ExprList:E1 {: RESULT=new ExprPlus(E1); RESULT.setLine(E1left); :}
+		|
+		(ExprCombined) CombOperationFactor:C1 {: RESULT=new ExprCombined(C1); RESULT.setLine(C1left); :}
 		;
 
-ExprMinusPlus ::= (ExprMinus) MinusEx:M1 Term:T2 {: RESULT=new ExprMinus(M1, T2); RESULT.setLine(M1left); :}
-			|
-			(ExprPlus) Term:T1 {: RESULT=new ExprPlus(T1); RESULT.setLine(T1left); :}
-			;
+
 			
 MinusEx ::= (MinusExp) MINUS {: RESULT=new MinusExp(); :}
 		;
 		
 ExprList ::= (AddopExpr) ExprList:E1 Addop:A2 Term:T3 {: RESULT=new AddopExpr(E1, A2, T3); RESULT.setLine(E1left); :}
 			|
-             (NoAddopExpr) {: RESULT=new NoAddopExpr(); :} /* epsilon */
+             (AddopExprTerm) Term:T1 {: RESULT=new AddopExprTerm(T1); RESULT.setLine(T1left); :}
                ; 
 
 Term ::= (MulopTerm) Term:T1 Mulop:M2 Factor:fact {: RESULT=new MulopTerm(T1, M2, fact); RESULT.setLine(T1left); :}
@@ -381,7 +390,7 @@ Factor ::= (DesignatorFactor) Designator:desig {: RESULT=new DesignatorFactor(de
 		    |
 		   (NewTypeFactor) NEW Type:typeNew ArrExprOpt:A1 {: RESULT=new NewTypeFactor(typeNew, A1); RESULT.setLine(typeNewleft); :}
 		   ;
-		
+
 ArrExprOpt ::= (ArrayExpr) LSQPAREN Expr:E1 RSQPAREN {: RESULT=new ArrayExpr(E1); RESULT.setLine(E1left); :}
 			|
 			(NoArrayExprOpt) {: RESULT=new NoArrayExprOpt(); :} /* epsilon */
@@ -410,10 +419,6 @@ DesignatorList ::= (DotDesignPart) DOT IDENT:name {: RESULT=new DotDesignPart(na
                   ;
 
 Assignop ::= (Assignoper) ASSIGN {: RESULT=new Assignoper(); :}
-			|
-			(AssignopAddOpRight) AddopRight:A1 {: RESULT=new AssignopAddOpRight(A1); RESULT.setLine(A1left); :}
-			|
-			(AssignopMulOpRight) MulopRight:M1 {: RESULT=new AssignopMulOpRight(M1); RESULT.setLine(M1left); :}
 			;
 
 Relop ::= (EqualOp) EQUAL {: RESULT=new EqualOp(); :}
@@ -440,8 +445,6 @@ AddopRight ::= (AddAssigment) ADDASSIGN {: RESULT=new AddAssigment(); :}
 			;
 			
 Addop ::= (AddopBasic) AddopLeft:A1 {: RESULT=new AddopBasic(A1); RESULT.setLine(A1left); :}
-		|
-		(AddopAdvanced) AddopRight:A1 {: RESULT=new AddopAdvanced(A1); RESULT.setLine(A1left); :}
 		;	
 		
 MulopLeft ::= (Muloper) MUL {: RESULT=new Muloper(); :}
@@ -458,7 +461,18 @@ MulopRight ::= (MulAssigment) MULASSIGN {: RESULT=new MulAssigment(); :}
 			(ModAssigment) MODUOASSIGN {: RESULT=new ModAssigment(); :}
 			;
 
-Mulop ::= (MulopBasic) MulopLeft:M1 {: RESULT=new MulopBasic(M1); RESULT.setLine(M1left); :}
-		|
-		(MulopAdvanced) MulopRight:M1 {: RESULT=new MulopAdvanced(M1); RESULT.setLine(M1left); :}
-		;				  
+Mulop ::= (MulopBasic) MulopLeft:M1 {: RESULT=new MulopBasic(M1); RESULT.setLine(M1left); :}		
+		;	
+		
+		
+CombOperation ::= (CombOperationMul) MulopRight:M1 {: RESULT=new CombOperationMul(M1); RESULT.setLine(M1left); :}
+				|
+				(CombOperationAdd) AddopRight:A1 {: RESULT=new CombOperationAdd(A1); RESULT.setLine(A1left); :}
+				;	  
+				
+
+CombOperationFactor ::=  (CombOperationFactorRecursive) Designator:D1 CombOperation:C2 CombOperationFactor:C3 {: RESULT=new CombOperationFactorRecursive(D1, C2, C3); RESULT.setLine(D1left); :}
+					|
+					(CombinedOperationOne) Designator:D1 CombOperation:C2 ExprList:E3 {: RESULT=new CombinedOperationOne(D1, C2, E3); RESULT.setLine(D1left); :}
+					;
+	

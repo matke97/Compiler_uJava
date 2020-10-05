@@ -1,5 +1,7 @@
 package rs.ac.bg.etf.pp1;
 
+import java.util.Stack;
+
 import org.apache.log4j.Logger;
 
 
@@ -17,8 +19,10 @@ public class CodeGenerator extends VisitorAdaptor {
 	Boolean FuncCallFactorFlag 	= false;
 	Boolean newArrayFlag		= false; // ako operator new kreira niz
 	Boolean desigStatmArray		= false; 
+	Boolean desigStatmArray2	= false;
 	//Boolean new
 	
+	boolean desnoAsocijativno = false;
 	
 	int typeDesigStmtOper		= -1;
 	int typeOfAddOp 			= -1; //FLAG ZA TIP OPERACIJE(MOZE BITI +, -, +=, -=)
@@ -28,6 +32,9 @@ public class CodeGenerator extends VisitorAdaptor {
 	
 	boolean desigFactorArray	   = false;
 	boolean desigReadArray		   = false;
+	boolean desigCombinedOperationArray = false;
+	
+	Obj ind = new Obj(Obj.Var,"$index$", Tab.intType);
 	
 	public int getMainPc(){
 		return mainPc;
@@ -243,20 +250,20 @@ public class CodeGenerator extends VisitorAdaptor {
 		
 		if(arrayIndexFlag)
 		{
-			Obj ind = new Obj(Obj.Var,"$index$", Tab.intType);
-			
-			Code.store(ind);
+			//Obj ind = new Obj(Obj.Var,"$index$", Tab.intType);
+			//Code.store(ind);
 			Code.load(currentDesignator);
-			Code.load(ind);
+			Code.put(Code.dup_x1);
+			Code.put(Code.pop);	
 		}
 		
 		/*
 		 * Ako  je desig[index] i ako je ovj designator factor, onda treba da dohvatimo tu vrednost!
-		 * Na EXP STEKU SE VEC NALAZI VR INDEXA
+		 * Na EXP STEKU SE VEC NALAZI adr i vr izraza
 		 */
 		if(desigFactorArray)
 		{
-			
+		
 			Code.put(Code.aload);
 			
 			
@@ -274,56 +281,110 @@ public class CodeGenerator extends VisitorAdaptor {
 			//Code.put(Code.aload);
 		}
 		
+		if(desigCombinedOperationArray)
+		{
+			// da na exp steku vec bude sledece adrNiza, index, vrednost
+			//Code.put(Code.dup2);
+			//Code.put(Code.aload);
+		}
+		
+		
 		
 		if(currentDesignator.getType().getKind() == Struct.Array && !arrayIndexFlag)
 		{
 			//new type[123];
-			Code.load(currentDesignator);
+			//Code.load(currentDesignator);
 		}
 		
 		minusTermFlag = false;
 		arrayIndexFlag = false;
 		desigFactorArray = false;
 		desigReadArray = false;
+		desigCombinedOperationArray = false;
 	}
 	
 	
 	public void visit( DesignatorStatement ds )
 	{
-		Obj desig = ds.getDesignator().obj;
-		//report_info("AAAAAAAAAAA1121323423  --> "+ desig.getName() + " na liniji:"+ ds.getLine(), null);
 		switch(typeDesigStmtOper) //PROMENI FLAG ILI CODE OPERACIJE
 		{
 		case 1: //ASSIGN
+			
+			
 			if(desigStatmArray)
 			{
 				//arr[ind] = expr;
-				report_info("dodela vr elemntu niza: "+ desig.getName() + " na liniji:"+ ds.getLine(), null);
+				report_info("dodela vr elemntu niza: "+ ds.getDesignator().obj.getName() + " na liniji:"+ ds.getLine(), null);
 				
-				Struct poms = new Struct(Struct.Array, desig.getType().getElemType());
-				Obj pom = new Obj(Obj.Elem, desig.getName(), poms);
+				//Struct poms = new Struct(Struct.Array, ds.getDesignator().obj.getType().getElemType());
+				//Obj pom = new Obj(Obj.Elem, ds.getDesignator().obj.getName(), poms);
+				////Code.store(pom)
 				
 				
-				Code.store(pom);
+				Code.put(Code.astore);
+				
 			}
-			else if(desig.getType().getKind() == Struct.Array)
+			else if(ds.getDesignator().obj.getType().getKind() == Struct.Array)
 			{
-				Code.store(desig);
+				Code.store(ds.getDesignator().obj);
 				
 			}
 			else
 			{
-				report_info("dodela vr promenljivoj: "+ desig.getName() + " na liniji:"+ ds.getLine(), null);
-				Code.store(desig);
+				report_info("dodela vr promenljivoj: "+ ds.getDesignator().obj.getName() + " na liniji:"+ ds.getLine(), null);
+				Code.store(ds.getDesignator().obj);
 			}
 			
 			break;
 			
-		case 2://generisano ranije trebace mozda posle!
-			break;
-		case 3:
-			break;
+		case 2: // INCREMENT
+			if(!desigStatmArray) {
+				
+				Code.load(ds.getDesignator().obj);
 			
+				Code.loadConst(1);
+			
+				Code.put(Code.add);
+
+				Code.store(ds.getDesignator().obj);	
+				
+			}else
+			{
+				
+				Code.put(Code.dup2);
+				Code.put(Code.aload);
+				Code.loadConst(1);				
+				Code.put(Code.add);				
+				Code.put(Code.astore);
+				
+			}
+			break;
+		case 3://DEC
+			if(!desigStatmArray) {
+				
+				Code.load(ds.getDesignator().obj);
+			
+				Code.loadConst(-1);
+			
+				Code.put(Code.add);
+
+				Code.store(ds.getDesignator().obj);	
+				
+			}else
+			{
+				
+				Code.put(Code.dup2);
+				Code.put(Code.aload);
+				Code.loadConst(-1);				
+				Code.put(Code.add);				
+				Code.put(Code.astore);
+				
+			}
+			break;
+		
+		case 4: 
+			Code.put(Code.pop);
+			break;
 		}
 		
 		
@@ -347,27 +408,20 @@ public class CodeGenerator extends VisitorAdaptor {
 		//first param
 		typeDesigStmtOper 		= 2;
 		
-		Code.load(currentDesignator);
-		
-		Code.loadConst(1);
-		
-		Code.put(Code.add);
-
-		Code.store(currentDesignator);		
+	
 	}
 	
 	public void visit(DesigOperationDec dec)
 	{
 		
 		typeDesigStmtOper 		= 3;
-		Code.load(currentDesignator);
-		Code.loadConst(-1);
-		Code.put(Code.add);
-
-		Code.store(currentDesignator);	
+			
 	}
 	
-	
+	public void visit(DesigOperationCombAss doca)
+	{
+		typeDesigStmtOper 		= 4;
+	}
 	public void visit(Assignoper aop)
 	{
 	
@@ -384,6 +438,7 @@ public class CodeGenerator extends VisitorAdaptor {
 		if(sn.getClass() == DesignatorStatement.class)
 		{
 			desigStatmArray = true;
+			
 		}
 		else if(sn.getClass() == DesignatorFactor.class)
 		{
@@ -393,7 +448,11 @@ public class CodeGenerator extends VisitorAdaptor {
 		else if(sn.getClass() == ReadStatement.class)
 		{
 			desigReadArray  = true;
+		}else if(sn instanceof CombOperationFactor)
+		{
+			desigCombinedOperationArray = true;
 		}
+		
 	}
 	
 	
@@ -420,63 +479,236 @@ public class CodeGenerator extends VisitorAdaptor {
 	{
 		minusTermFlag = true;
 	}
+	
+	//jebacu mu mater sad
+	//stek za operatore - vrednostiint u zavisnosti koji operator
+	Stack<Integer> operatori = new Stack<>();
+	
+	//leftvar
+	Stack<Obj> leftVar = new Stack<>();
+	
 	public void visit(AddopExpr addexp)
 	{
-		switch(typeOfAddOp)
+		
+		if(operatori.isEmpty())
 		{
-		case 1:
-			Code.put(Code.add);
-			break;
-		case 2:
-			Code.put(Code.sub);
-			break;
-		case 3:
-			break;
-		case 4:
+			report_info("JEBENA DJOALAAMULLL",null);
+		}else
+		{
+			typeOfAddOp = operatori.pop();
+			
+			switch(typeOfAddOp)
+			{
+			case 1:
+				Code.put(Code.add);
+
+				break;
+			case 2:
+				Code.put(Code.sub);
+				
+				break;
+			case 3:
+				break;
+			case 4:
+				break;
+			default:
+				operatori.push(typeOfAddOp);
+			}
 		}
 		
-		typeOfAddOp = -1;
 	}
+	
+	public void visit(FactorTerm ft)
+	{
+		
+	}
+	
+	
+
 	
 	public void visit(MulopTerm mulTerm)
 	{
-		switch(typeOfMulOp)
-		{
-		case 1:
-			Code.put(Code.mul);
-			break;
-		case 2:
-			Code.put(Code.div);
-			break;
-		case 3:
-			Code.put(Code.rem);
-		}
 		
-		typeOfMulOp = -1;
+		
+		if(operatori.isEmpty())
+		{
+			
+		}else
+		{
+			typeOfMulOp = operatori.pop();
+			
+			switch(typeOfMulOp)
+			{
+			case 3:
+				Code.put(Code.mul);
+				break;
+			case 4:
+				Code.put(Code.div);
+				break;
+			case 5:
+				Code.put(Code.rem);
+				break;
+			default:
+				report_info("KOmbinovani operator:",null);
+				operatori.push(typeOfMulOp);
+			}
+		}
+	
 	}
 	
 	public void visit(Addoper addo)
 	{
 		typeOfAddOp = 1;
+		operatori.push(1);
 	}
 	
 	public void visit(Suboper sub)
 	{
 		typeOfAddOp = 2;
+		operatori.push(2);
 	}
 	
 	public void visit(Muloper mul)
 	{
-		typeOfMulOp = 1;
+		typeOfMulOp = 3;
+		operatori.push(3);
 	}
 	
 	public void visit(Divoper div)
 	{
-		typeOfMulOp = 2;
+		typeOfMulOp = 4;
+		operatori.push(4);
 	}
 	
 	public void visit(Modoper mod)
 	{
-		typeOfMulOp = 3;
+		typeOfMulOp = 5;
+		operatori.push(5);
+	}
+	
+	public void visit(AddAssigment addAss)
+	{
+		//gledaj
+		desnoAsocijativno = true;
+		//report_info("TRDESIGNATOR "  + currentDesignator.getName(), null);
+
+			leftVar.push(currentDesignator);
+		
+		operatori.push(6);
+	}
+	
+	public void visit(SubAssigment subass)
+	{
+		desnoAsocijativno = true;
+		//report_info("TRDESIGNATOR "  + currentDesignator.getName(), null);
+			leftVar.push(currentDesignator);
+		
+		operatori.push(7);
+	}
+	
+	
+	
+	public void visit(MulAssigment mulass)
+	{
+		desnoAsocijativno = true;
+		
+
+			leftVar.push(currentDesignator);
+
+		operatori.push(8);
+	}
+	
+	public void visit(DivAssigment divass)
+	{
+		desnoAsocijativno = true;
+		
+		if(currentDesignator.getType().getKind() != Struct.Array)
+		{
+			leftVar.push(currentDesignator);
+		}
+		operatori.push(9);
+	}
+	
+	public void visit(ModAssigment modass)
+	{
+		desnoAsocijativno = true;
+		report_info("TRDESIGNATOR "  + currentDesignator.getName(), null);
+		if(currentDesignator.getType().getKind() != Struct.Array)
+		{
+			leftVar.push(currentDesignator);
+		}
+		operatori.push(10);
+	}
+	
+	
+	/*
+	 * operVal:
+	 * += - 6
+	 * -= - 7
+	 * *= - 8
+	 * /= - 9
+	 * %= - 10
+	 */
+	public void visit(ExprCombined ec)
+	{
+		while(!leftVar.isEmpty())
+		{
+			Obj trenutni = leftVar.pop();
+			Integer a = operatori.pop();
+			if(trenutni.getType().getKind() == Struct.Array)
+			{
+				Code.put(Code.dup_x2); // za vrednost
+				Code.put(Code.pop);
+				
+				Code.put(Code.dup_x2); // za index niza
+				Code.put(Code.aload);
+				
+			}
+			
+			switch(a)
+			{
+			case 6:
+				Code.put(Code.add);
+				break;
+				
+			case 7:
+				Code.put(Code.sub);
+				break;
+				
+			case 8:
+				Code.put(Code.mul);
+				break;
+				
+			case 9:
+				Code.put(Code.div);
+				break;
+				
+			case 10:
+				Code.put(Code.rem);
+				break;
+			}
+			
+			
+			
+			if(trenutni.getType().getKind() == Struct.Array)
+			{
+				Code.put(Code.dup_x1);
+				Code.load(trenutni);
+				Code.put(Code.dup_x2);
+				Code.put(Code.pop);
+				if(trenutni.getType().getKind() == Struct.Char)
+				{
+					Code.put(Code.bastore);
+				}else
+				{
+					Code.put(Code.astore);
+				}
+			}else
+			{
+				Code.put(Code.dup);
+				Code.store(trenutni);
+				
+			}
+		}
 	}
 }

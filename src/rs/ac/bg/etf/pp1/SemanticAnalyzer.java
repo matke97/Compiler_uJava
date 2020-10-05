@@ -26,10 +26,8 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     boolean arrayRead 					= false;
     boolean newTypeFactorFlag 			= false; 
 	int desigStatementOperation = -1; //operacija koj se desava sa dstm
-
-
-	Obj designatorLeftObj 					= null;
-	
+	Struct desigStatementExpr 	= null;
+	//Struct factorType 			= null;
 	int nVars;
 	
 	int numClass = 0, 	numMethod = 0, 	numGlobalVar = 0 ,	numConst = 0, 	numGlobalArray = 0;
@@ -412,6 +410,10 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     				report_error("Greska na liniji: " + desig.getLine() + ": Pristup elem niza promenljivoj koja nije niz.", null);
     			}
     			arrayDesigFlag = false;
+    			factorType = currentDesigObj.getType().getElemType();
+    		}else
+    		{
+    			factorType = currentDesigObj.getType();
     		}
     	}
     	
@@ -434,32 +436,25 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     	{
     		arrayRead = true;
     	}
-
-    	else if((adp.getParent().getParent()).getClass() == DesignatorFactor.class)
-    	{
-    		pristupNizu = true;
-    	}
-
     	else if((adp.getParent().getParent()).getClass() == DesignatorFactor.class) {
     		pristupNizu = true;
     	}
-
+    	
     	arrayDesigFlag = true;
     }
     
     public void visit(DesignatorFactor desigfac)
     {
     	//desigfac.struct = currentDesigObj.getType();
-    	Obj o = desigfac.getDesignator().obj;
-    	Struct s = o.getType();
-    	
+    	Struct s;
     	if(pristupNizu)
     	{
-    		
     		s = desigfac.getDesignator().obj.getType().getElemType();
- 	
+    		
+    	}else
+    	{
+    		s = desigfac.getDesignator().obj.getType();
     	}
-    	
     	desigfac.struct = s;
     	factorType 		= s;
     	
@@ -468,27 +463,20 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     public void visit(FactorTerm facTerm)
     {
     	facTerm.struct = facTerm.getFactor().struct;
-
-    	//factorType  = facTerm.getFactor().struct;
-
+    	
     }
     
     public void visit(MulopTerm mulopTerm)
     {
     	mulopTerm.struct = mulopTerm.getFactor().struct;
-    	//factorType		 = mulopTerm.getFactor().struct;
     }
     
-    
-
     
     public void visit(DesigOperationAss dop)
     {
     	desigStatementOperation = 1;
-
-    	report_info("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" + dop.getExpr().struct, null);
     	
-    	//designatorLeftObj 		= null;
+    	desigStatementExpr = dop.getExpr().struct;
     	
     	
     }
@@ -509,18 +497,36 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     }
     public void visit(DesignatorStatement ds)
     {
-    	Obj desig = ds.getDesignatorLeft().getDesignator().obj;
+    	Obj desig = ds.getDesignator().obj;
+    	
+    	if(desig.getKind() == Obj.Con)
+    	{
+    		report_error("Greska na liniji " + ds.getLine() + ": Zabranjena promena vrednosti konstatni.", null);
+    	}
     	//PAZI MORAS ZA ARRAY
     	//report_info("ASASASDASD: "+ ds.getDesignator().obj.getName(),null);
     	switch(desigStatementOperation)
     	{
     	case 1: //=====DS ASSIGMENT===========
-    		/*report_info("gledaj " + desigStatementExpr.getKind() + ": some",null);
+    		
     		if(!arrayDesignatorStatement && desigStatementExpr.getKind() != desig.getType().getKind())
     		{
     			report_error("Greska na liniji " + ds.getLine() + ": Nekompatibilni tipvoi u dodeli vrednosti",null);
     		}
-    		else 
+    		else if(newTypeFactorFlag)
+    		{
+    			
+    			if(factorType.getKind() == Struct.Array)
+    			{
+    				if(desig.getType().getKind() != Struct.Array)
+    				{
+    					report_error("Greska na liniji " + ds.getLine() + ": Nekompatibilni tipvoi u dodeli vrednosti",null);
+    				}else if(desig.getType().getElemType().getKind() != factorType.getElemType().getKind())
+    				{
+    					report_error("Greska na liniji " + ds.getLine() + ": Nekompatibilni tipvoi u dodeli vrednosti",null);
+    				}
+    			}
+    		}
     		else if(arrayDesignatorStatement && desigStatementExpr.getKind() != (desig.getType().getElemType()).getKind())
     		{
     			report_error("Greska na liniji " + ds.getLine() + ": Nekompatibilni tipvoi u dodeli vrednosti",null);
@@ -529,8 +535,8 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     		
     		//========END DS ASSIGMENT=========
         	desigStatementExpr 		= null;
-        	*/
     		break;
+    		
     		
     	case 2://========INCREMENT=========
     		if(!arrayDesignatorStatement && desig.getType().getKind()  != Struct.Int )
@@ -542,6 +548,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     		}
     		break;
     		
+    		
     	case 3://========DECREMENT=========
     		if(!arrayDesignatorStatement && desig.getType().getKind()  != Struct.Int )
     		{
@@ -552,17 +559,33 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     		}
     		break;
     		
+    		
     	case 4: //========PROC CALL=========
     		if(desig.getKind() != Obj.Meth)
     		{
     			report_error("Greska na liniji " + ds.getLine() + ": " + desig.getName() + " nije metoda.",null);
     		}
     		break;
+    		
+    		
+    	case 5: //========KOMBINOVANI OPERATOR DODELE================
+    		if(newTypeFactorFlag)
+    		{
+    			report_error("Greska na liniji " + ds.getLine() + ": Nedozovljena upotreba operatora!",null);
+    		}
+    		
+    		if(!arrayDesignatorStatement && desigStatementExpr.getKind() != desig.getType().getKind())
+    		{
+    			report_error("Greska na liniji " + ds.getLine() + ": Nekompatibilni tipvoi u dodeli vrednosti1",null);
+    		}
+    		else if(arrayDesignatorStatement && desigStatementExpr.getKind() != (desig.getType().getElemType()).getKind())
+    		{
+    			report_error("Greska na liniji " + ds.getLine() + ": Nekompatibilni tipvoi u dodeli vrednosti2 " + desigStatementExpr.getKind(),null);
+    		}
     	}
     	
     	desigStatementOperation = -1;
-    	
-    	designatorLeftObj 		= null;
+
     	arrayDesignatorStatement= false;
     	
     	
@@ -620,6 +643,10 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     	
     	Struct s = nf.getType().struct;
     	
+    	/*SyntaxNode sn = nf.getParent().getParent();
+    	
+    	report_info("hgasjhdgjhsjkadshkajakj"  + sn.getClass(), null);*/
+    	
     	if(s.getKind() == Struct.Class)
     	{
     		report_error("Greska na liniji " + nf.getLine() + " Kreiranje objekata i nizova moguce samo za osnovne tipove.",null);
@@ -641,17 +668,23 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     	}
     }
     
+    
+    
     public void visit(AddopExpr addExpr)
     {
     	//Struct t = addExpr.getTerm().struct;
     	//Struct te = addExpr.getExprList()
     }
     
-    public void visit(Expr e)
+    public void visit(ExprMinus e)
     {
     	e.struct = factorType;
     }
     
+    public void visit(ExprPlus e)
+    {
+    	e.struct = factorType;
+    }
     
     public void visit(ArrayExpr arrex)
     {
@@ -676,6 +709,11 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     public void visit(ReadStatement rs)
     {
     	Obj desig = rs.getDesignator().obj;
+    	if(desig.getKind() == Obj.Con)
+    	{
+    		report_error("Greska na liniji "+ rs.getLine()+": Ucitavanje u konstatnu nije moguce.", null);
+    	}
+    	
     	if(arrayRead)
     	{
     		if(desig.getType().getElemType().getKind() != Struct.Int  && desig.getType().getElemType().getKind() != Struct.Char && arrayRead)
@@ -697,6 +735,38 @@ public class SemanticAnalyzer extends VisitorAdaptor {
     }
     
     
+    
+    public void visit(CombOperationFactorRecursive cofr)
+    {
+    	//report_info("JEBEM TI MATER 1" , null);
+    	cofr.struct = factorType;
+    }
+    
+    public void visit(CombinedOperationOne coo)
+    {
+    	//report_info("JEBEM TI MATER 2" + coo.getDesignator().obj.getName(), null);
+    	coo.struct = (coo.getDesignator().obj.getType().getKind() == Struct.Array) ? coo.getDesignator().obj.getType().getElemType() : coo.getDesignator().obj.getType();
+    	if(coo.getDesignator().obj.getKind() == Obj.Con)
+    	{
+    		report_error("Greska na liniji " + coo.getLine() + " Zabranjena je dodela vrednosti konstanti", null);
+    	}
+    	if(newTypeFactorFlag)
+    	{
+    		report_error("Greska na liniji " + coo.getLine() + " Kombinovani operator dodele ne moze se koristiti sa operarorom new", null);
+    	}
+    }
+    
+    
+    public void visit(DesigOperationCombAss coca)
+    {
+    	desigStatementExpr = coca.getExpr().struct;
+    	desigStatementOperation = 5;
+    }
+    
+    public void visit(ExprCombined ec)
+    {
+    	ec.struct = ec.getCombOperationFactor().struct;
+    }
     
     public boolean passed()
     {

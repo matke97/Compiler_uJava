@@ -8,21 +8,21 @@ program MJProgram
 
 	void main() int q;
 	{
-		//y = 2;
-
+		y = 2;
+		y--;
 		z = new char[15];
 		niz = new int[10];
 		
 		niz[0] = 1;
 		niz[0]++;
 		print(niz[0]);
-		y = 1 + 2 + 3 +5 ;
+		//y = 1 + 2 + 3 +5 ;
 		//read(z[2]);
 		z[1] = 'm';
 		z[5] = z[2];
 		
 		z[6] = z[2];
-		print(z[1]);
+		print(y);
 		
 	}
 }
